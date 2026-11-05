@@ -1,0 +1,2529 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Presupuesto Mensual</title>
+<meta name="description" content="Calculadora sencilla para hacer su plan de dinero y descargarlo en PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bitter:wght@600;700;800&display=swap">
+<style>
+html, body { margin: 0; }
+/* Layout: una sola columna tipo libreta, seis pasos en secuencia (ingresos → objetivo → hoja de gastos → reparto del mes → dinero extra → plan). Verde = dinero de cada mes, dorado = dinero extra. Tema claro fijo. */
+:root {
+  --bg: #F6FAF8;
+  --surface: #FFFFFF;
+  --field: #FFFFFF;
+  --ink: #1B2A24;
+  --ink-soft: #51625B;
+  --line: #DCE6E1;
+  --line-strong: #93A69E;
+  --accent: #1E7A59;
+  --accent-hover: #17654A;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E4F4ED;
+  --oro: #8A5D00;
+  --oro-soft: #FFF4D9;
+  --oro-line: #EBCF8F;
+  --warn-ink: #8A4F00;
+  --warn-bg: #FFF5DE;
+  --warn-fill: #E5A73D;
+  --bad-ink: #A3321F;
+  --bad-bg: #FDEDE9;
+  --focus: #E0A100;
+  --shadow: 0 6px 18px rgba(27, 42, 36, 0.08);
+
+  --c-vivienda: #3F80C4;
+  --c-servicios: #33A3B8;
+  --c-comida: #4E9E4E;
+  --c-salud: #D35C50;
+  --c-transporte: #8C6CBA;
+  --c-personal: #6C8FC8;
+  --c-ahorro: #CC9A26;
+  --c-meta: #1E7A59;
+  --c-deudas: #8E7563;
+  --c-familia: #D76A93;
+  --c-gustos: #E58A33;
+  --c-otros: #8D9A95;
+  --c-anuales: #4F7FA8;
+
+  --font-display: "Bitter", Georgia, "Times New Roman", serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", Verdana, Arial, sans-serif;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { font-size: 100%; }
+html[data-letra="grande"] { font-size: 115%; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.1875rem;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 4rem;
+  -webkit-text-size-adjust: 100%;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--bg);
+}
+
+.wrap { max-width: 46rem; margin: 0 auto; padding-top: 1.75rem; display: flex; flex-direction: column; gap: 1.75rem; }
+
+h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; margin: 0; color: var(--ink); }
+h1 { font-size: clamp(2.125rem, 7vw, 2.875rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.625rem, 5vw, 2rem); font-weight: 700; line-height: 1.2; }
+h2:focus { outline: none; }
+h3 { font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
+h4 { font-size: 1.125rem; font-weight: 700; line-height: 1.3; }
+p { margin: 0; }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* Encabezado */
+.top { display: flex; flex-direction: column; gap: 0.875rem; }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1rem; }
+.eyebrow { font-size: 0.875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lead { color: var(--ink-soft); max-width: 36em; }
+.letra { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--ink-soft); }
+.letra-btns { display: inline-flex; border: 2px solid var(--line-strong); border-radius: 10px; overflow: hidden; }
+.letra button { font: inherit; font-weight: 700; min-height: 2.75rem; padding: 0 0.875rem; background: var(--surface); color: var(--ink); border: 0; cursor: pointer; }
+.letra button + button { border-left: 2px solid var(--line-strong); }
+.letra button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.letra .a-grande { font-size: 1.2em; }
+
+/* Pasos */
+.pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.4rem; }
+.paso {
+  width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem;
+  padding: 0.7rem 0.15rem 0.2rem; background: transparent; border: 0; border-top: 5px solid var(--line);
+  color: var(--ink-soft); font: inherit; font-size: 0.92rem; line-height: 1.2; text-align: left; cursor: pointer;
+}
+.paso .num { flex: none; width: 2.125rem; height: 2.125rem; border-radius: 50%; display: grid; place-items: center; font-weight: 700; border: 2px solid currentColor; font-variant-numeric: tabular-nums; }
+.paso.hecho { border-top-color: var(--accent); color: var(--ink); }
+.paso.hecho .num { border-color: var(--accent); color: var(--accent); }
+.paso[aria-current="step"] { border-top-color: var(--accent); color: var(--ink); font-weight: 700; }
+.paso[aria-current="step"] .num { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.paso:disabled { cursor: not-allowed; opacity: 0.45; }
+.paso:not(:disabled):not([aria-current="step"]):hover .txt { text-decoration: underline; }
+
+/* Paneles */
+.panel { display: flex; flex-direction: column; gap: 1.5rem; }
+.panel-head { display: flex; flex-direction: column; gap: 0.5rem; }
+.panel-head .cuenta { font-size: 0.95rem; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.04em; text-transform: uppercase; }
+.panel-head p:not(.cuenta) { color: var(--ink-soft); max-width: 38em; }
+.panel-head strong { color: var(--ink); }
+
+/* Campos */
+.campo { display: grid; gap: 0.4rem; min-width: 0; align-content: start; }
+.campo > label, .lbl { font-weight: 700; font-size: 1.0625rem; }
+.ayuda { font-size: 0.95rem; color: var(--ink-soft); font-weight: 400; }
+.input {
+  font: inherit; font-size: 1.125rem; width: 100%; min-height: 3.375rem; padding: 0 0.875rem;
+  border: 2px solid var(--line-strong); border-radius: 10px; background-color: var(--field); color: var(--ink);
+}
+select.input {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 2.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E7A59' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.875rem center; background-size: 1.375rem;
+}
+.input::placeholder { color: var(--ink-soft); opacity: 0.75; }
+.input:focus { border-color: var(--accent); }
+.dinero { position: relative; }
+.dinero > span { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--ink-soft); pointer-events: none; }
+.dinero .input { padding-left: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+.fila { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+
+.info { background: var(--accent-soft); border-radius: 12px; padding: 1.125rem 1.25rem; display: grid; gap: 0.5rem; }
+.info strong { color: var(--accent); }
+.info ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.375rem; }
+.info li { position: relative; padding-left: 1.375rem; }
+.info li::before { content: ""; position: absolute; left: 0.2rem; top: 0.6em; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--accent); }
+.info li.oro::before { background: var(--oro-line); box-shadow: inset 0 0 0 2px var(--oro); }
+
+/* Fuentes de ingreso */
+.fuentes { display: flex; flex-direction: column; gap: 1rem; }
+.fuente { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; display: grid; gap: 1.125rem; }
+.fuente-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.btn-quitar {
+  font: inherit; font-size: 1rem; font-weight: 700; min-height: 2.75rem; padding: 0 0.875rem;
+  background: transparent; color: var(--bad-ink); border: 2px solid currentColor; border-radius: 10px; cursor: pointer;
+}
+.btn-quitar:hover { background: var(--bad-bg); }
+.uso { border-radius: 10px; padding: 0.75rem 1rem; display: grid; gap: 0.15rem; font-size: 1.0625rem; }
+.uso[data-d="diario"] { background: var(--accent-soft); }
+.uso[data-d="extra"] { background: var(--oro-soft); }
+.uso .uso-t { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.uso[data-d="diario"] .uso-t { color: var(--accent); }
+.uso[data-d="extra"] .uso-t { color: var(--oro); }
+.uso .uso-eq { font-size: 1rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.btn-agregar {
+  font: inherit; font-weight: 700; font-size: 1.125rem; min-height: 3.5rem; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 12px; cursor: pointer;
+}
+.btn-agregar:hover { background: var(--accent-soft); }
+.btn-agregar .mas { font-size: 1.5rem; line-height: 1; }
+
+.totales { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.totales > div { border-radius: 12px; padding: 1rem 1.25rem; display: grid; gap: 0.125rem; align-content: start; min-width: 0; }
+.totales .t-mes { background: var(--accent-soft); }
+.totales .t-extra { background: var(--oro-soft); }
+.totales span { font-weight: 700; font-size: 1rem; }
+.totales strong { font-family: var(--font-display); font-size: clamp(1.75rem, 6vw, 2.25rem); line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.totales .t-mes strong { color: var(--accent); }
+.totales .t-extra strong { color: var(--oro); }
+.totales small { font-size: 0.95rem; color: var(--ink-soft); }
+
+.aviso { padding: 0.875rem 1.125rem; border-radius: 10px; background: var(--bad-bg); color: var(--bad-ink); font-weight: 700; }
+.aviso.suave { background: var(--warn-bg); color: var(--warn-ink); }
+
+/* Botones */
+.nav { display: flex; flex-wrap: wrap; gap: 0.875rem; align-items: center; justify-content: space-between; }
+.nav .derecha, .nav-der { margin-left: auto; }
+.nav-der { display: flex; flex-wrap: wrap; gap: 0.875rem; align-items: center; }
+.btn {
+  font: inherit; font-weight: 700; font-size: 1.125rem; min-height: 3.5rem; padding: 0 1.5rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  border-radius: 10px; border: 2px solid transparent; cursor: pointer; text-align: center; line-height: 1.2;
+}
+.btn-primario { background: var(--accent); color: var(--accent-ink); }
+.btn-primario:hover { background: var(--accent-hover); }
+.btn-secundario { background: var(--surface); color: var(--accent); border-color: var(--accent); }
+.btn-secundario:hover { background: var(--accent-soft); }
+.btn-texto {
+  font: inherit; font-size: 1.0625rem; font-weight: 700; color: var(--accent); background: none; border: 0;
+  padding: 0.5rem 0.25rem; min-height: 2.75rem; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; text-align: left;
+}
+.acciones { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; }
+.btn-xl { min-height: 4.25rem; font-size: 1.25rem; width: 100%; }
+.btn:disabled { opacity: 0.6; cursor: progress; }
+.btn svg { width: 1.4em; height: 1.4em; flex: none; }
+
+/* Paso 2: objetivo */
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend { padding: 0; margin: 0 0 0.875rem; font-weight: 700; font-size: 1.125rem; }
+.ops { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.op { position: relative; display: grid; gap: 0.25rem; align-content: start; padding: 1rem 1.125rem 1rem 3.25rem; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; cursor: pointer; min-width: 0; }
+.op:hover { border-color: var(--accent); }
+.op input { position: absolute; left: 1.05rem; top: 1.2rem; width: 1.4rem; height: 1.4rem; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.op input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.op-t { font-weight: 700; font-size: 1.125rem; line-height: 1.3; }
+.op-d { color: var(--ink-soft); font-size: 1rem; }
+.op.sel { border-color: var(--accent); background: var(--accent-soft); }
+.obj-detalle { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; display: grid; gap: 1.125rem; }
+.calc { background: var(--accent-soft); border-radius: 10px; padding: 0.875rem 1.125rem; font-weight: 700; color: var(--accent); }
+.situacion { display: grid; gap: 1rem; }
+.situacion-head { display: grid; gap: 0.25rem; }
+.situacion-head p { color: var(--ink-soft); }
+
+/* Paso 3: hoja de gastos */
+.gastos { display: flex; flex-direction: column; gap: 1rem; }
+.g-grupo {
+  background: var(--surface);
+  background: color-mix(in srgb, var(--c) 5%, var(--surface));
+  border: 1px solid var(--line);
+  border-color: color-mix(in srgb, var(--c) 25%, var(--surface));
+  border-radius: 12px; padding: 1.125rem 1.25rem; display: grid; gap: 0.75rem;
+}
+.g-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem; }
+.g-head h3 { display: flex; align-items: center; gap: 0.625rem; }
+.g-sub { font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.gasto { display: grid; grid-template-columns: minmax(0, 1fr) 9.5rem 11.5rem; gap: 0.5rem 0.625rem; align-items: center; padding-top: 0.625rem; border-top: 1px solid var(--line); }
+.gasto > label { font-weight: 700; font-size: 1.0625rem; min-width: 0; }
+.gasto .input { min-height: 3rem; font-size: 1.0625rem; }
+.gasto .grande { display: block; font-size: 0.85rem; font-weight: 700; color: var(--oro); }
+.gasto-x { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.gasto-x .gx-top { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+.estado { padding: 0.875rem 1.125rem; border-radius: 10px; font-weight: 700; }
+.estado[data-e="ok"] { background: var(--accent-soft); color: var(--accent); }
+.estado[data-e="ojo"] { background: var(--warn-bg); color: var(--warn-ink); }
+
+/* Pasos 4 y 5: reparto */
+.resumen-pct {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1rem 1.25rem; display: grid; gap: 0.625rem; box-shadow: var(--shadow);
+}
+.resumen-pct.estatico { position: static; box-shadow: none; }
+.rp-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem; }
+.rp-top .rp-lbl { font-weight: 700; }
+.rp-top .rp-lbl small { display: block; font-weight: 400; font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.rp-num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.barra { height: 0.875rem; border-radius: 999px; background: var(--line); overflow: hidden; }
+.barra > div { height: 100%; width: 0; border-radius: 999px; background: var(--accent); transition: width 0.25s ease; }
+.rp-msg { font-weight: 700; font-size: 1.0625rem; }
+.resumen-pct[data-estado="listo"] .rp-msg, .resumen-pct[data-estado="listo"] .rp-num { color: var(--accent); }
+.resumen-pct[data-estado="falta"] .rp-msg, .resumen-pct[data-estado="falta"] .rp-num { color: var(--warn-ink); }
+.resumen-pct[data-estado="falta"] .barra > div { background: var(--warn-fill); }
+.resumen-pct[data-estado="pasado"] .rp-msg, .resumen-pct[data-estado="pasado"] .rp-num { color: var(--bad-ink); }
+.resumen-pct[data-estado="pasado"] .barra > div { background: var(--bad-ink); }
+
+.grupo-head { display: grid; gap: 0.15rem; padding-top: 0.75rem; }
+.grupo-head h3 { font-size: 1.375rem; }
+.grupo-head p { color: var(--ink-soft); font-size: 1.0625rem; }
+.grupo-head .grupo-suma { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.rubros { display: flex; flex-direction: column; gap: 0.875rem; }
+.rubro {
+  background: var(--surface);
+  background: color-mix(in srgb, var(--c) 7%, var(--surface));
+  border: 1px solid var(--line);
+  border-color: color-mix(in srgb, var(--c) 30%, var(--surface));
+  border-radius: 12px; padding: 1.125rem 1.25rem; display: grid; gap: 1rem;
+}
+.rubro-info { display: grid; gap: 0.3rem; min-width: 0; }
+.rubro-info .item-t { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.625rem; font-size: 1.25rem; }
+.rubro-info p { color: var(--ink-soft); font-size: 1.0625rem; max-width: 38em; }
+.rubro-info .real { color: var(--ink); font-size: 1rem; font-variant-numeric: tabular-nums; }
+.rubro-info .real strong { color: var(--accent); }
+.sw { flex: none; width: 1rem; height: 1rem; border-radius: 50%; background: var(--c); display: inline-block; }
+.pill { display: inline-block; font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); vertical-align: middle; white-space: nowrap; }
+.rubro-ctrl { display: grid; grid-template-columns: auto auto minmax(0, 15rem); justify-content: start; align-items: end; gap: 0.75rem; }
+.ctrl { display: grid; gap: 0.35rem; min-width: 0; }
+.ctrl > label { font-size: 0.95rem; font-weight: 700; color: var(--ink-soft); }
+.igual { min-height: 3.375rem; display: grid; place-items: center; font-family: var(--font-display); font-size: 1.625rem; font-weight: 700; color: var(--ink-soft); }
+.pct-box { display: flex; align-items: stretch; gap: 0.375rem; }
+.pm { font-family: var(--font-body); font-size: 1.75rem; font-weight: 700; line-height: 1; width: 3.375rem; min-height: 3.375rem; border-radius: 10px; border: 2px solid var(--accent); background: var(--surface); color: var(--accent); cursor: pointer; display: grid; place-items: center; }
+.pm:hover { background: var(--accent); color: var(--accent-ink); }
+.pct-campo { display: flex; align-items: center; justify-content: center; gap: 0.125rem; padding: 0 0.5rem; border: 2px solid var(--line-strong); border-radius: 10px; background: var(--field); min-width: 6.25rem; min-height: 3.375rem; }
+.pct-campo:focus-within { border-color: var(--accent); outline: 3px solid var(--focus); outline-offset: 2px; }
+.pct-input { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; width: 4.6ch; text-align: right; border: 0; background: transparent; color: var(--ink); padding: 0; font-variant-numeric: tabular-nums; }
+.pct-input:focus { outline: none; }
+.pct-sign { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--ink-soft); }
+.dinero .monto-input { font-family: var(--font-display); font-size: 1.375rem; }
+
+.extras { display: flex; flex-direction: column; gap: 2rem; }
+.extra-fuente { display: grid; gap: 0.875rem; }
+.ef-head { background: var(--oro-soft); border: 1px solid var(--oro-line); border-radius: 12px; padding: 1rem 1.25rem; display: grid; gap: 0.3rem; }
+.ef-head h3 { font-size: 1.375rem; }
+.ef-monto { font-weight: 700; color: var(--oro); font-variant-numeric: tabular-nums; }
+.ef-reco { color: var(--ink); }
+.ef-reco strong { color: var(--oro); }
+details.leyenda { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.875rem 1.25rem; }
+details.leyenda summary { cursor: pointer; font-weight: 700; color: var(--accent); min-height: 2.25rem; display: flex; align-items: center; }
+details.leyenda ul { margin: 0.75rem 0 0.25rem; padding: 0; list-style: none; display: grid; gap: 0.625rem; }
+details.leyenda li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.625rem; align-items: baseline; }
+details.leyenda li span.sw { transform: translateY(0.15rem); }
+
+/* Paso 6: resultados */
+.meta { color: var(--ink-soft); font-size: 1.0625rem; }
+.cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.cifras > div { padding: 1rem 1.25rem; display: grid; gap: 0.2rem; align-content: start; min-width: 0; }
+.cifras > div + div { border-left: 1px solid var(--line); }
+.cifras span { font-size: 0.95rem; font-weight: 700; color: var(--ink-soft); }
+.cifras strong { font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; overflow-wrap: anywhere; }
+.cifras .c-mes strong { color: var(--accent); }
+.cifras .c-extra strong { color: var(--oro); }
+.res-sec { display: grid; gap: 1rem; }
+.res-sec > h3 { font-size: clamp(1.375rem, 4.5vw, 1.625rem); padding-top: 0.5rem; }
+.res-sec .sub { color: var(--ink-soft); max-width: 38em; }
+.stack { display: flex; height: 1.75rem; border-radius: 8px; overflow: hidden; background: var(--line); }
+.stack > span { display: block; height: 100%; }
+.stack > span + span { box-shadow: inset 2px 0 0 var(--surface); }
+.stack > span.vacio { background: repeating-linear-gradient(135deg, var(--line) 0 6px, var(--surface) 6px 12px); }
+.grupos-res { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.625rem; }
+.grupos-res > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.75rem 1rem; display: grid; gap: 0.1rem; min-width: 0; }
+.grupos-res span { font-size: 0.95rem; color: var(--ink-soft); font-weight: 700; }
+.grupos-res strong { font-family: var(--font-display); font-size: 1.375rem; font-variant-numeric: tabular-nums; }
+.grupos-res small { font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.res-lista { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
+.res-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.875rem; align-items: center; padding: 0.875rem 0; border-bottom: 1px solid var(--line); }
+.res-item > div { min-width: 0; }
+.res-item .sw { border-radius: 4px; }
+.ri-nombre { display: block; font-weight: 700; }
+.ri-sub { display: block; font-size: 1rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.ri-monto { text-align: right; font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.15; }
+.ri-monto small { display: block; font-family: var(--font-body); font-size: 0.875rem; font-weight: 400; color: var(--ink-soft); }
+.res-item.vacio .ri-nombre, .res-item.vacio .ri-monto { color: var(--ink-soft); }
+.res-item.vacio .sw { background: repeating-linear-gradient(135deg, var(--line-strong) 0 3px, var(--surface) 3px 6px); }
+.res-total { border-bottom: 2px solid var(--ink); }
+.res-total .ri-nombre { font-size: 1.125rem; }
+.res-total .ri-monto { font-size: 1.75rem; }
+.res-total .sw { visibility: hidden; }
+.plan-fuentes { display: grid; gap: 0.75rem; }
+.plan-fuente { background: var(--oro-soft); border: 1px solid var(--oro-line); border-radius: 12px; padding: 1rem 1.25rem; display: grid; gap: 0.625rem; }
+.pf-t { font-weight: 700; }
+.pf-t small { display: block; font-weight: 400; font-size: 1rem; color: var(--ink-soft); }
+.plan-fuente ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.plan-fuente li { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding-bottom: 0.35rem; border-bottom: 1px dashed var(--oro-line); }
+.plan-fuente li:last-child { border-bottom: 0; padding-bottom: 0; }
+.plan-fuente li strong { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.meta-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
+.meta-card > h4 { font-size: 1.25rem; }
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0; margin: 0; }
+.kv dt, .kv dd { padding: 0.5rem 0; border-bottom: 1px solid var(--line); }
+.kv dt { color: var(--ink-soft); padding-right: 1rem; }
+.kv dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.progreso { display: grid; gap: 0.35rem; }
+.progreso-barra { height: 0.875rem; background: var(--line); border-radius: 999px; overflow: hidden; }
+.progreso-barra > div { height: 100%; background: var(--accent); border-radius: 999px; }
+.progreso p { font-size: 1rem; color: var(--ink-soft); }
+.tabla-wrap { overflow-x: auto; }
+table.comp { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 1rem; }
+table.comp th { text-align: left; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); padding: 0 0.5rem 0.5rem 0; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+table.comp td { padding: 0.6rem 0.5rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.comp .num { text-align: right; white-space: nowrap; }
+table.comp td.num { font-weight: 700; }
+table.comp td.mas { color: var(--accent); }
+table.comp td.menos { color: var(--bad-ink); }
+table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); }
+.infl-campo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.infl-campo label { font-weight: 700; }
+.infl-campo .pct-campo { min-width: 7.5rem; }
+.recos { display: grid; gap: 1rem; }
+.reco { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.125rem 1.25rem; display: grid; gap: 0.75rem; }
+.reco ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.625rem; }
+.reco li { position: relative; padding-left: 1.375rem; max-width: 40em; }
+.reco li::before { content: ""; position: absolute; left: 0.2rem; top: 0.6em; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--accent); }
+.descarga { display: grid; gap: 0.75rem; }
+.descarga .ayuda { text-align: center; }
+.msg { font-weight: 700; min-height: 1.5em; }
+.msg[data-tipo="ok"] { color: var(--accent); }
+.msg[data-tipo="bad"] { color: var(--bad-ink); }
+.pie { font-size: 0.95rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 1.25rem; }
+
+@media (max-width: 600px) {
+  .fila, .ops, .totales { grid-template-columns: minmax(0, 1fr); }
+  .pasos { gap: 0.25rem; }
+  .paso { align-items: center; padding-inline: 0; }
+  .paso .txt { display: none; }
+  .paso .num { width: 2rem; height: 2rem; font-size: 0.95rem; }
+  .gasto { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .gasto > label { grid-column: 1 / -1; }
+  .rubro-ctrl { grid-template-columns: minmax(0, 1fr); }
+  .igual { display: none; }
+  .pct-box { justify-content: space-between; }
+  .pct-box .pct-campo { flex: 1; }
+  .cifras, .grupos-res { grid-template-columns: minmax(0, 1fr); }
+  .cifras > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .nav, .nav-der { flex-direction: column-reverse; align-items: stretch; }
+  .nav .btn { width: 100%; }
+  .nav .derecha, .nav-der { margin-left: 0; }
+  .ri-monto { font-size: 1.3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <p class="eyebrow">Calculadora de presupuesto</p>
+      <div class="letra" role="group" aria-labelledby="letra-lbl">
+        <span id="letra-lbl">Tamaño de letra</span>
+        <span class="letra-btns">
+          <button type="button" id="letra-normal" aria-pressed="true">A</button>
+          <button type="button" id="letra-grande" class="a-grande" aria-pressed="false" aria-label="Letra grande">A</button>
+        </span>
+      </div>
+    </div>
+    <h1>Mi plan de dinero</h1>
+    <p class="lead">Anote lo que recibe, elija su objetivo y, si quiere, lo que gasta. Le damos un plan para su dinero de cada mes y para el dinero extra, y un reporte completo en PDF.</p>
+  </header>
+
+  <nav aria-label="Pasos">
+    <ol class="pasos">
+      <li><button type="button" class="paso" data-ir="1" aria-label="Paso 1: Ingresos"><span class="num">1</span><span class="txt">Ingresos</span></button></li>
+      <li><button type="button" class="paso" data-ir="2" aria-label="Paso 2: Objetivo"><span class="num">2</span><span class="txt">Objetivo</span></button></li>
+      <li><button type="button" class="paso" data-ir="3" aria-label="Paso 3: Mis gastos"><span class="num">3</span><span class="txt">Mis gastos</span></button></li>
+      <li><button type="button" class="paso" data-ir="4" aria-label="Paso 4: Reparto del mes"><span class="num">4</span><span class="txt">Reparto</span></button></li>
+      <li><button type="button" class="paso" data-ir="5" aria-label="Paso 5: Dinero extra"><span class="num">5</span><span class="txt">Extras</span></button></li>
+      <li><button type="button" class="paso" data-ir="6" aria-label="Paso 6: Mi plan"><span class="num">6</span><span class="txt">Mi plan</span></button></li>
+    </ol>
+  </nav>
+
+  <!-- PASO 1: INGRESOS -->
+  <section class="panel" data-panel="1" aria-labelledby="h-paso1">
+    <div class="panel-head">
+      <p class="cuenta">Paso 1 de 6</p>
+      <h2 id="h-paso1" tabindex="-1">¿Cuánto dinero recibe?</h2>
+      <p>Anote cada entrada de dinero, aunque sea pequeña o llegue una sola vez al año, como el aguinaldo. Solo díganos cuánto recibe y cada cuándo; nosotros le recomendamos en qué usarlo.</p>
+    </div>
+
+    <div class="info">
+      <p><strong>Así organizamos su dinero</strong></p>
+      <ul>
+        <li>Lo que llega <strong>cada mes</strong>, como su pensión, es para sus gastos fijos del día a día.</li>
+        <li class="oro">Lo que llega <strong>cada dos meses</strong> se va a su objetivo y a su ahorro, porque llega seguido y le ayuda a juntar parejo.</li>
+        <li class="oro">Lo que llega <strong>una vez al año</strong>, como el aguinaldo, cubre los pagos grandes de inicio de año (predial, tenencia, seguros) y las fiestas.</li>
+      </ul>
+    </div>
+
+    <div class="campo">
+      <label for="nombre">Su nombre <span class="ayuda">(opcional, aparece en el reporte)</span></label>
+      <input class="input" id="nombre" type="text" autocomplete="name" placeholder="Por ejemplo: María López">
+    </div>
+
+    <div class="fuentes" id="fuentes"></div>
+
+    <button type="button" class="btn-agregar" id="btn-agregar"><span class="mas" aria-hidden="true">+</span> Agregar otro ingreso</button>
+
+    <div class="totales" role="status" aria-live="polite">
+      <div class="t-mes"><span>Para los gastos de cada mes</span><strong id="tot-mes">$0</strong><small>al mes</small></div>
+      <div class="t-extra"><span>Dinero extra para ahorro y metas</span><strong id="tot-extra">$0</strong><small>al año</small></div>
+    </div>
+
+    <p class="aviso" id="err-ingreso" hidden>Escriba al menos una cantidad para poder continuar.</p>
+
+    <div class="nav">
+      <button type="button" class="btn-texto" id="btn-ejemplo">Ver con un ejemplo</button>
+      <button type="button" class="btn btn-primario derecha" id="p1-sig">Siguiente: mi objetivo <span aria-hidden="true">→</span></button>
+    </div>
+  </section>
+
+  <!-- PASO 2: OBJETIVO -->
+  <section class="panel" data-panel="2" aria-labelledby="h-paso2" hidden>
+    <div class="panel-head">
+      <p class="cuenta">Paso 2 de 6</p>
+      <h2 id="h-paso2" tabindex="-1">¿Qué quiere lograr con su dinero?</h2>
+      <p>Elija el objetivo más importante para usted en los próximos meses. Con eso decidimos cómo repartir su dinero extra y ajustamos las sugerencias de su plan.</p>
+    </div>
+
+    <fieldset>
+      <legend>Su objetivo principal</legend>
+      <div class="ops" id="ops"></div>
+    </fieldset>
+
+    <div class="obj-detalle" id="obj-detalle" hidden>
+      <h3 id="obj-detalle-t">Detalles de su objetivo</h3>
+      <div class="campo" id="c-objotro" hidden>
+        <label for="obj-otro">¿Cuál es su objetivo?</label>
+        <input class="input" id="obj-otro" type="text" autocomplete="off" maxlength="60" placeholder="Por ejemplo: comprar una lavadora">
+      </div>
+      <div class="fila">
+        <div class="campo" id="c-meta">
+          <label for="obj-meta" id="l-meta">¿Cuánto dinero necesita?</label>
+          <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="obj-meta" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+          <p class="ayuda" id="a-meta" hidden>Sume tarjetas, préstamos y compras a meses.</p>
+          <button type="button" class="btn-texto" id="btn-meta-reco" hidden></button>
+        </div>
+        <div class="campo" id="c-tiene">
+          <label for="obj-tiene" id="l-tiene">¿Cuánto tiene ya juntado para esto?</label>
+          <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="obj-tiene" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="obj-plazo" id="l-plazo">¿En cuánto tiempo quiere lograrlo?</label>
+        <select class="input" id="obj-plazo">
+          <option value="3">En 3 meses</option>
+          <option value="6">En 6 meses</option>
+          <option value="12">En 1 año</option>
+          <option value="18">En año y medio</option>
+          <option value="24">En 2 años</option>
+          <option value="36">En 3 años</option>
+        </select>
+      </div>
+      <p class="calc" id="obj-calc" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="situacion">
+      <div class="situacion-head">
+        <h3>Su situación hoy</h3>
+        <p>Opcional. Nos ayuda a darle mejores recomendaciones.</p>
+      </div>
+      <div class="fila">
+        <div class="campo" id="c-emerg">
+          <label for="sit-emerg">¿Cuánto tiene ahorrado para emergencias?</label>
+          <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="sit-emerg" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        </div>
+        <div class="campo" id="c-deuda">
+          <label for="sit-deuda">¿Cuánto debe en total?</label>
+          <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="sit-deuda" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+          <p class="ayuda">Tarjetas, préstamos y compras a meses.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-secundario" id="p2-ant"><span aria-hidden="true">←</span> Regresar</button>
+      <button type="button" class="btn btn-primario derecha" id="p2-sig">Siguiente: mis gastos <span aria-hidden="true">→</span></button>
+    </div>
+  </section>
+
+  <!-- PASO 3: HOJA DE GASTOS (OPCIONAL) -->
+  <section class="panel" data-panel="3" aria-labelledby="h-paso3" hidden>
+    <div class="panel-head">
+      <p class="cuenta">Paso 3 de 6 · Opcional</p>
+      <h2 id="h-paso3" tabindex="-1">¿Sabe cuánto gasta en cada cosa?</h2>
+      <p>Si sabe cuánto paga de luz, súper, gasolina o tenencia, anótelo aquí. Con eso armamos su presupuesto y lo incluimos en su reporte. Deje en blanco lo que no aplique. Si no lo sabe, puede saltar este paso.</p>
+    </div>
+
+    <div class="info">
+      <p><strong>Pagos grandes del año.</strong> Lo que paga cada seis meses o una vez al año, como el predial, la tenencia o el seguro del coche, lo separamos del gasto de cada mes para planear con qué dinero cubrirlo.</p>
+    </div>
+
+    <div class="acciones">
+      <button type="button" class="btn-texto" id="btn-ejemplo-gastos">Llenar con un ejemplo</button>
+      <button type="button" class="btn-texto" id="btn-borrar-gastos" hidden>Borrar mi hoja de gastos</button>
+    </div>
+
+    <div class="gastos" id="gastos"></div>
+
+    <button type="button" class="btn-agregar" id="btn-agregar-gasto"><span class="mas" aria-hidden="true">+</span> Agregar otro gasto</button>
+
+    <div class="totales" role="status" aria-live="polite">
+      <div class="t-mes"><span>Gastos de cada mes</span><strong id="g-tot-mes">$0</strong><small>al mes</small></div>
+      <div class="t-extra"><span>Pagos grandes del año</span><strong id="g-tot-grandes">$0</strong><small id="g-tot-grandes-sub">al año</small></div>
+    </div>
+    <p class="estado" id="g-estado" hidden></p>
+
+    <div class="nav">
+      <button type="button" class="btn btn-secundario" id="p3-ant"><span aria-hidden="true">←</span> Regresar</button>
+      <div class="nav-der">
+        <button type="button" class="btn btn-secundario" id="p3-saltar">Saltar este paso</button>
+        <button type="button" class="btn btn-primario" id="p3-sig">Siguiente: reparto <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASO 4: REPARTO DEL MES -->
+  <section class="panel" data-panel="4" aria-labelledby="h-paso4" hidden>
+    <div class="panel-head">
+      <p class="cuenta">Paso 4 de 6</p>
+      <h2 id="h-paso4" tabindex="-1">¿Cómo quiere repartir su dinero de cada mes?</h2>
+      <p>Su dinero para el día a día es de <strong id="p4-base">$0</strong> al mes. En cada rubro puede escribir el porcentaje o la cantidad en pesos, y el otro dato se calcula solo. Entre todos deben sumar 100%.</p>
+    </div>
+
+    <p class="aviso suave" id="p4-sin-base" hidden>No tiene ingresos que lleguen cada mes, cada quincena o cada semana. Regrese al paso 1 para revisarlos.</p>
+    <p class="info" id="p4-real-nota" hidden></p>
+
+    <div class="resumen-pct" id="rp-mes" data-estado="listo">
+      <div class="rp-top">
+        <span class="rp-lbl">Lleva repartido <small id="rp-mes-sub">$0 de $0 al mes</small></span>
+        <span class="rp-num" id="rp-mes-num">100%</span>
+      </div>
+      <div class="barra" aria-hidden="true"><div id="rp-mes-barra"></div></div>
+      <p class="rp-msg" id="rp-mes-msg" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="rubros" id="rubros"></div>
+
+    <div class="acciones">
+      <button type="button" class="btn-texto" id="btn-usar-reales" hidden>Usar mis gastos reales</button>
+      <button type="button" class="btn-texto" id="btn-sugerido-mes">Volver a los porcentajes sugeridos</button>
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-secundario" id="p4-ant"><span aria-hidden="true">←</span> Regresar</button>
+      <button type="button" class="btn btn-primario derecha" id="p4-sig">Siguiente <span aria-hidden="true">→</span></button>
+    </div>
+  </section>
+
+  <!-- PASO 5: DINERO EXTRA -->
+  <section class="panel" data-panel="5" aria-labelledby="h-paso5" hidden>
+    <div class="panel-head">
+      <p class="cuenta">Paso 5 de 6</p>
+      <h2 id="h-paso5" tabindex="-1">Su plan para el dinero extra</h2>
+      <p>Es el dinero que no llega cada mes: <strong id="p5-base">$0</strong> al año. Para cada pago le recomendamos un reparto según su objetivo. Si quiere, ajústelo escribiendo el porcentaje o la cantidad.</p>
+    </div>
+
+    <details class="leyenda">
+      <summary>¿Qué es cada bolsa?</summary>
+      <ul id="leyenda-bolsas"></ul>
+    </details>
+
+    <p class="estado" id="ext-cobertura" hidden></p>
+
+    <div class="extras" id="extras"></div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-secundario" id="p5-ant"><span aria-hidden="true">←</span> Regresar</button>
+      <button type="button" class="btn btn-primario derecha" id="p5-sig">Ver mi plan <span aria-hidden="true">→</span></button>
+    </div>
+  </section>
+
+  <!-- PASO 6: RESULTADO -->
+  <section class="panel" data-panel="6" aria-labelledby="h-paso6" hidden>
+    <div class="panel-head">
+      <p class="cuenta">Paso 6 de 6</p>
+      <h2 id="h-paso6" tabindex="-1">Su plan de dinero</h2>
+      <p class="meta" id="res-meta"></p>
+    </div>
+
+    <div class="cifras">
+      <div class="c-mes"><span>Para cada mes</span><strong id="res-mes">$0</strong></div>
+      <div class="c-extra"><span>Dinero extra al año</span><strong id="res-extra">$0</strong></div>
+      <div><span>Total al año</span><strong id="res-anio">$0</strong></div>
+    </div>
+
+    <section class="res-sec" aria-labelledby="rs-mes">
+      <h3 id="rs-mes">Presupuesto de cada mes</h3>
+      <p class="sub" id="rs-mes-sub"></p>
+      <div class="stack" id="res-stack" aria-hidden="true"></div>
+      <div class="grupos-res" id="res-grupos"></div>
+      <ul class="res-lista" id="res-lista" aria-label="Cantidad por rubro"></ul>
+    </section>
+
+    <section class="res-sec" id="sec-gastos" aria-labelledby="rs-gastos">
+      <h3 id="rs-gastos">Sus gastos reales</h3>
+      <p class="sub">Lo que anotó en su hoja de gastos, comparado con su plan.</p>
+      <div class="meta-card" id="res-gastos"></div>
+      <div class="tabla-wrap">
+        <table class="comp">
+          <thead><tr><th scope="col">Rubro</th><th scope="col" class="num">Planeado</th><th scope="col" class="num">Hoy gasta</th><th scope="col" class="num">Diferencia</th></tr></thead>
+          <tbody id="comp-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="res-sec" id="sec-extra" aria-labelledby="rs-extra">
+      <h3 id="rs-extra">Plan para su dinero extra</h3>
+      <p class="sub" id="rs-extra-sub"></p>
+      <div class="stack" id="res-stack-extra" aria-hidden="true"></div>
+      <ul class="res-lista" id="res-extra-lista" aria-label="Cantidad por bolsa"></ul>
+      <h4>Qué hacer cuando reciba cada pago</h4>
+      <div class="plan-fuentes" id="res-plan-fuentes"></div>
+    </section>
+
+    <section class="res-sec" id="sec-obj" aria-labelledby="rs-obj">
+      <h3 id="rs-obj">Su objetivo</h3>
+      <div class="meta-card" id="res-obj"></div>
+    </section>
+
+    <section class="res-sec" id="sec-emerg" aria-labelledby="rs-emerg">
+      <h3 id="rs-emerg">Fondo para emergencias</h3>
+      <p class="sub">Es un colchón para imprevistos. Lo recomendable es juntar de 3 a 6 meses de sus gastos indispensables.</p>
+      <div class="meta-card" id="res-emerg"></div>
+    </section>
+
+    <section class="res-sec" id="sec-infl" aria-labelledby="rs-infl">
+      <h3 id="rs-infl">La inflación</h3>
+      <p class="sub">Los precios suben cada año, y lo que hoy le alcanza mañana le alcanzará para menos. En México la inflación anual fue de 3.62% en la primera quincena de octubre de 2026, según el INEGI. Para planear usamos 4%, un poco más, para ir a la segura.</p>
+      <div class="infl-campo">
+        <label for="inflacion">Inflación que vamos a considerar</label>
+        <div class="pct-campo"><input class="pct-input" id="inflacion" type="text" inputmode="decimal" autocomplete="off" maxlength="5"><span class="pct-sign" aria-hidden="true">%</span></div>
+        <span class="ayuda">al año</span>
+      </div>
+      <div class="tabla-wrap">
+        <table class="comp">
+          <thead><tr><th scope="col">Concepto</th><th scope="col" class="num">Hoy</th><th scope="col" class="num">En 1 año</th><th scope="col" class="num">En 5 años</th></tr></thead>
+          <tbody id="infl-body"></tbody>
+        </table>
+      </div>
+      <div class="reco"><h4>Cómo protegerse</h4><ul id="infl-consejos"></ul></div>
+    </section>
+
+    <section class="res-sec" aria-labelledby="rs-recos">
+      <h3 id="rs-recos">Recomendaciones para usted</h3>
+      <div class="recos" id="res-recos"></div>
+    </section>
+
+    <div class="descarga">
+      <button type="button" class="btn btn-primario btn-xl" id="btn-pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+        Descargar mi reporte completo en PDF
+      </button>
+      <p class="ayuda">Incluye todo su plan, sus gastos, la inflación, una hoja para anotar sus gastos del mes y la explicación de cada rubro.</p>
+      <p class="msg" id="pdf-msg" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-secundario" id="p6-ant"><span aria-hidden="true">←</span> Cambiar mi plan</button>
+      <button type="button" class="btn-texto derecha" id="btn-reiniciar">Empezar de nuevo</button>
+    </div>
+  </section>
+
+  <p class="pie">Este plan es una guía para organizar su dinero, no una asesoría financiera profesional. Revíselo cada mes y ajústelo si cambia algo, como un aumento en la pensión o un gasto nuevo.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     Catálogos
+     ========================================================= */
+  var FRECUENCIAS = [
+    { id: "mensual",   label: "Cada mes",       porAnio: 12, regular: true },
+    { id: "quincenal", label: "Cada quincena",  porAnio: 24, regular: true },
+    { id: "semanal",   label: "Cada semana",    porAnio: 52, regular: true },
+    { id: "bimestral", label: "Cada dos meses", porAnio: 6,  regular: false },
+    { id: "anual",     label: "Una vez al año", porAnio: 1,  regular: false },
+    { id: "unica",     label: "Una sola vez",   porAnio: 1,  regular: false }
+  ];
+  var FREC_GASTO = [
+    { id: "semanal",   label: "Cada semana",     porAnio: 52 },
+    { id: "quincenal", label: "Cada quincena",   porAnio: 24 },
+    { id: "mensual",   label: "Cada mes",        porAnio: 12 },
+    { id: "bimestral", label: "Cada dos meses",  porAnio: 6 },
+    { id: "semestral", label: "Cada seis meses", porAnio: 2 },
+    { id: "anual",     label: "Una vez al año",  porAnio: 1 }
+  ];
+
+  var TIPOS = [
+    { id: "pension-imss",      label: "Pensión del IMSS",                        frec: "mensual",   seguro: true },
+    { id: "pension-issste",    label: "Pensión del ISSSTE",                      frec: "mensual",   seguro: true },
+    { id: "pension-otra",      label: "Otra pensión o jubilación",               frec: "mensual",   seguro: true },
+    { id: "bienestar",         label: "Pensión del Bienestar (adultos mayores)", frec: "bimestral", seguro: true },
+    { id: "mujeres-bienestar", label: "Pensión Mujeres Bienestar",               frec: "bimestral", seguro: true },
+    { id: "sueldo",            label: "Sueldo o salario",                        frec: "quincenal", seguro: true },
+    { id: "negocio",           label: "Negocio o trabajo por mi cuenta",         frec: "mensual",   seguro: false },
+    { id: "renta",             label: "Renta de una propiedad",                  frec: "mensual",   seguro: false },
+    { id: "apoyo",             label: "Apoyo de hijos o familiares",             frec: "mensual",   seguro: false },
+    { id: "aguinaldo",         label: "Aguinaldo",                               frec: "anual",     seguro: true },
+    { id: "intereses",         label: "Intereses o inversiones",                 frec: "mensual",   seguro: false },
+    { id: "otro",              label: "Otro ingreso",                            frec: "mensual",   seguro: false }
+  ];
+
+  var OBJETIVOS = [
+    { id: "emergencias", tipo: "emergencias", titulo: "Tener un fondo para emergencias", corto: "Fondo para emergencias", desc: "Juntar dinero para imprevistos: una enfermedad, una reparación o un mes difícil." },
+    { id: "deudas",      tipo: "deudas",      titulo: "Salir de deudas",                 corto: "Salir de deudas",        desc: "Terminar de pagar tarjetas, préstamos o compras a meses." },
+    { id: "alcanzar",    tipo: "alcanzar",    titulo: "Que me alcance el dinero cada mes", corto: "Que me alcance el dinero", desc: "Ordenar mis gastos para no quedarme corto antes de fin de mes." },
+    { id: "salud",       tipo: "meta",        titulo: "Estar preparado para gastos de salud", corto: "Fondo para salud",  desc: "Tener dinero para estudios, tratamientos, una operación o un seguro médico." },
+    { id: "casa",        tipo: "meta",        titulo: "Arreglar o mejorar mi casa",      corto: "Arreglos de la casa",    desc: "Reparaciones, impermeabilizar, pintar o adaptar la casa para vivir más cómodo." },
+    { id: "viaje",       tipo: "meta",        titulo: "Hacer un viaje o darme un gusto", corto: "Viaje o gusto",          desc: "Un viaje, visitar a la familia o algo que siempre ha querido." },
+    { id: "familia",     tipo: "meta",        titulo: "Ayudar a mi familia",             corto: "Ayudar a mi familia",    desc: "Apoyar a hijos o nietos con estudios, un negocio o un imprevisto." },
+    { id: "compra",      tipo: "meta",        titulo: "Comprar algo importante",         corto: "Compra importante",      desc: "Un auto, aparatos para la casa, muebles o un celular." },
+    { id: "otro",        tipo: "meta",        titulo: "Otro objetivo",                   corto: "Otro objetivo",          desc: "Escriba con sus palabras qué quiere lograr." }
+  ];
+
+  var GRUPOS = [
+    { id: "basico", titulo: "Lo indispensable",           desc: "Lo que necesita para vivir cada mes." },
+    { id: "futuro", titulo: "Su futuro: ahorro y deudas", desc: "Lo que aparta para estar tranquilo más adelante." },
+    { id: "gusto",  titulo: "Familia y gustos",           desc: "Lo que hace la vida más agradable." }
+  ];
+
+  var RUBROS = [
+    { id: "vivienda",   grupo: "basico", nombre: "Vivienda",                color: "--c-vivienda",   pdf: "#3F80C4", desc: "Renta o pago de la casa (hipoteca), cuota de mantenimiento y reparaciones pequeñas." },
+    { id: "servicios",  grupo: "basico", nombre: "Servicios de la casa",    color: "--c-servicios",  pdf: "#33A3B8", desc: "Luz, agua, gas, teléfono, internet y televisión de paga." },
+    { id: "comida",     grupo: "basico", nombre: "Comida y despensa",       color: "--c-comida",     pdf: "#4E9E4E", desc: "Súper o mercado, tortillas, frutas y verduras, y comidas fuera de casa." },
+    { id: "salud",      grupo: "basico", nombre: "Salud",                   color: "--c-salud",      pdf: "#D35C50", desc: "Consultas, medicinas, análisis, dentista, lentes y seguro de gastos médicos." },
+    { id: "transporte", grupo: "basico", nombre: "Transporte",              color: "--c-transporte", pdf: "#8C6CBA", desc: "Gasolina, camión o metro, taxi o Uber, y servicio del coche." },
+    { id: "personal",   grupo: "basico", nombre: "Ropa y cuidado personal", color: "--c-personal",   pdf: "#6C8FC8", desc: "Ropa, zapatos, corte de cabello, artículos de higiene y de limpieza." },
+    { id: "ahorro",     grupo: "futuro", nombre: "Ahorro para emergencias", color: "--c-ahorro",     pdf: "#CC9A26", desc: "Dinero que aparta cada mes para imprevistos y para los meses difíciles." },
+    { id: "meta",       grupo: "futuro", nombre: "Mi objetivo",             color: "--c-meta",       pdf: "#1E7A59", desc: "Lo que aparta cada mes para lograr el objetivo que eligió." },
+    { id: "deudas",     grupo: "futuro", nombre: "Deudas",                  color: "--c-deudas",     pdf: "#8E7563", desc: "Pagos de tarjetas de crédito, préstamos y compras a meses." },
+    { id: "familia",    grupo: "gusto",  nombre: "Familia y regalos",       color: "--c-familia",    pdf: "#D76A93", desc: "Apoyo a hijos o nietos, regalos, cumpleaños y celebraciones." },
+    { id: "gustos",     grupo: "gusto",  nombre: "Gustos y paseos",         color: "--c-gustos",     pdf: "#E58A33", desc: "Salidas, pasatiempos, cursos y suscripciones como Netflix o Spotify." },
+    { id: "otros",      grupo: "gusto",  nombre: "Otros gastos",            color: "--c-otros",      pdf: "#8D9A95", desc: "Mascotas, donativos, cuotas y cualquier gasto que no aparezca arriba." }
+  ];
+
+  var BOLSAS = [
+    { id: "objetivo",    nombre: "Mi objetivo",                     color: "--c-meta",    pdf: "#1E7A59", desc: "Dinero para lograr el objetivo que eligió." },
+    { id: "emergencias", nombre: "Fondo para emergencias",          color: "--c-ahorro",  pdf: "#CC9A26", desc: "Un colchón para imprevistos: una enfermedad, una reparación urgente o un mes en que no llegue algún ingreso." },
+    { id: "deudas",      nombre: "Adelantar pagos de deudas",       color: "--c-deudas",  pdf: "#8E7563", desc: "Abonar de más a tarjetas o préstamos para terminar antes y pagar menos intereses." },
+    { id: "anuales",     nombre: "Pagos grandes del año",           color: "--c-anuales", pdf: "#4F7FA8", desc: "Pagos de una o dos veces al año: predial, tenencia o refrendo, seguros, servicio del coche y mantenimiento de la casa." },
+    { id: "gustos",      nombre: "Gustos, regalos y celebraciones", color: "--c-gustos",  pdf: "#E58A33", desc: "Regalos de Navidad y cumpleaños, fiestas o un paseo, ya planeados para no salirse del presupuesto." }
+  ];
+
+  var GASTOS_BASE = [
+    { id: "renta",         rubro: "vivienda",   label: "Renta o hipoteca",               frec: "mensual" },
+    { id: "mantenimiento", rubro: "vivienda",   label: "Cuota de mantenimiento",         frec: "mensual" },
+    { id: "predial",       rubro: "vivienda",   label: "Predial",                        frec: "anual" },
+    { id: "luz",           rubro: "servicios",  label: "Luz",                            frec: "bimestral" },
+    { id: "agua",          rubro: "servicios",  label: "Agua",                           frec: "mensual" },
+    { id: "gas",           rubro: "servicios",  label: "Gas",                            frec: "mensual" },
+    { id: "internet",      rubro: "servicios",  label: "Teléfono e internet",            frec: "mensual" },
+    { id: "celular",       rubro: "servicios",  label: "Celular",                        frec: "mensual" },
+    { id: "super",         rubro: "comida",     label: "Súper y mercado",                frec: "semanal" },
+    { id: "fuera",         rubro: "comida",     label: "Comidas fuera de casa",          frec: "mensual" },
+    { id: "medicinas",     rubro: "salud",      label: "Medicinas",                      frec: "mensual" },
+    { id: "consultas",     rubro: "salud",      label: "Consultas y estudios",           frec: "mensual" },
+    { id: "seguro-medico", rubro: "salud",      label: "Seguro de gastos médicos",       frec: "anual" },
+    { id: "gasolina",      rubro: "transporte", label: "Gasolina",                       frec: "semanal" },
+    { id: "pasajes",       rubro: "transporte", label: "Camión, taxi o Uber",            frec: "semanal" },
+    { id: "servicio-auto", rubro: "transporte", label: "Servicio del coche",             frec: "semestral" },
+    { id: "seguro-auto",   rubro: "transporte", label: "Seguro del coche",               frec: "anual" },
+    { id: "tenencia",      rubro: "transporte", label: "Tenencia o refrendo",            frec: "anual" },
+    { id: "ropa",          rubro: "personal",   label: "Ropa y zapatos",                 frec: "mensual" },
+    { id: "higiene",       rubro: "personal",   label: "Artículos de limpieza e higiene", frec: "mensual" },
+    { id: "tarjetas",      rubro: "deudas",     label: "Pago de tarjetas",               frec: "mensual" },
+    { id: "prestamos",     rubro: "deudas",     label: "Préstamos o compras a meses",    frec: "mensual" },
+    { id: "apoyo-fam",     rubro: "familia",    label: "Apoyo a familiares",             frec: "mensual" },
+    { id: "regalos",       rubro: "familia",    label: "Regalos y celebraciones",        frec: "mensual" },
+    { id: "salidas",       rubro: "gustos",     label: "Salidas y paseos",               frec: "mensual" },
+    { id: "suscripciones", rubro: "gustos",     label: "Netflix, Spotify y similares",   frec: "mensual" },
+    { id: "mascotas",      rubro: "otros",      label: "Mascotas",                       frec: "mensual" }
+  ];
+
+  var BASICO = { vivienda: 25, servicios: 8, comida: 20, salud: 12, transporte: 7, personal: 3 };
+  var PRESET_MES = {
+    ninguno:     { ahorro: 10, meta: 0, deudas: 5,  familia: 5, gustos: 5, otros: 0 },
+    alcanzar:    { ahorro: 10, meta: 0, deudas: 5,  familia: 5, gustos: 5, otros: 0 },
+    emergencias: { ahorro: 15, meta: 0, deudas: 4,  familia: 3, gustos: 3, otros: 0 },
+    meta:        { ahorro: 7,  meta: 8, deudas: 3,  familia: 4, gustos: 3, otros: 0 },
+    deudas:      { ahorro: 5,  meta: 0, deudas: 15, familia: 3, gustos: 2, otros: 0 }
+  };
+  /* Reparto recomendado del dinero extra según qué tan seguido llega y el objetivo */
+  var PRESET_FUENTE = {
+    bimestral: {
+      meta:        { objetivo: 45, emergencias: 35, deudas: 0,  anuales: 20, gustos: 0 },
+      emergencias: { objetivo: 0,  emergencias: 75, deudas: 0,  anuales: 25, gustos: 0 },
+      deudas:      { objetivo: 0,  emergencias: 25, deudas: 60, anuales: 15, gustos: 0 },
+      alcanzar:    { objetivo: 0,  emergencias: 60, deudas: 0,  anuales: 30, gustos: 10 },
+      ninguno:     { objetivo: 0,  emergencias: 60, deudas: 0,  anuales: 30, gustos: 10 }
+    },
+    anual: {
+      meta:        { objetivo: 35, emergencias: 15, deudas: 0,  anuales: 35, gustos: 15 },
+      emergencias: { objetivo: 0,  emergencias: 50, deudas: 0,  anuales: 35, gustos: 15 },
+      deudas:      { objetivo: 0,  emergencias: 10, deudas: 50, anuales: 30, gustos: 10 },
+      alcanzar:    { objetivo: 0,  emergencias: 35, deudas: 0,  anuales: 45, gustos: 20 },
+      ninguno:     { objetivo: 0,  emergencias: 35, deudas: 0,  anuales: 40, gustos: 25 }
+    },
+    unica: {
+      meta:        { objetivo: 60, emergencias: 40, deudas: 0,  anuales: 0,  gustos: 0 },
+      emergencias: { objetivo: 0,  emergencias: 90, deudas: 0,  anuales: 0,  gustos: 10 },
+      deudas:      { objetivo: 0,  emergencias: 30, deudas: 70, anuales: 0,  gustos: 0 },
+      alcanzar:    { objetivo: 0,  emergencias: 80, deudas: 0,  anuales: 10, gustos: 10 },
+      ninguno:     { objetivo: 0,  emergencias: 70, deudas: 0,  anuales: 20, gustos: 10 }
+    }
+  };
+  var PLAZOS = [3, 6, 12, 18, 24, 36];
+  var INF_DEFAULT = 4;
+  var KEY = "presupuesto-mensual-v3";
+  var KEY_LETRA = "presupuesto-mensual-letra";
+
+  /* =========================================================
+     Utilidades
+     ========================================================= */
+  function $(s) { return document.querySelector(s); }
+  function $$(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]; }); }
+  var fmtMoney = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  function money(n) { var v = Math.round(n || 0); if (v === 0) v = 0; return fmtMoney.format(v); }
+  function moneySigno(n) { var v = Math.round(n || 0); if (v === 0) return "$0"; return (v > 0 ? "+" : "−") + fmtMoney.format(Math.abs(v)); }
+  function round2(n) { return Math.round(n * 100) / 100; }
+  function numPct(n) { var v = round2(n); if (v === 0) v = 0; return v.toLocaleString("es-MX", { maximumFractionDigits: 2 }); }
+  function fmtPct(n) { return numPct(n) + "%"; }
+  function parseMonto(s) { var n = parseFloat(String(s == null ? "" : s).replace(/[^0-9.]/g, "")); return isFinite(n) && n > 0 ? n : 0; }
+  function clamp(v) { return Math.min(100, Math.max(0, isFinite(v) ? v : 0)); }
+  function porId(arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return null; }
+  function copia(o) { var r = {}; for (var k in o) r[k] = o[k]; return r; }
+  function freq(id) { return porId(FRECUENCIAS, id) || FRECUENCIAS[0]; }
+  function fGasto(id) { return porId(FREC_GASTO, id) || FREC_GASTO[2]; }
+  function tipoDe(id) { return porId(TIPOS, id); }
+  function rubroDe(id) { return porId(RUBROS, id); }
+  function fechaLarga() { return new Date().toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }); }
+  function fechaEn(meses) { var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + meses); return d.toLocaleDateString("es-MX", { month: "long", year: "numeric" }); }
+  function fmtMeses(n) {
+    if (n == null) return "sin fecha";
+    if (n <= 1) return "1 mes";
+    if (n < 24) return n + " meses";
+    var a = Math.floor(n / 12), m = n % 12;
+    return a + " años" + (m ? " y " + m + (m === 1 ? " mes" : " meses") : "");
+  }
+  function lista(arr, conj) { conj = conj || "y"; if (arr.length <= 1) return arr.join(""); return arr.slice(0, -1).join(", ") + " " + conj + " " + arr[arr.length - 1]; }
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* =========================================================
+     Estado
+     ========================================================= */
+  function presetMes(t) { var o = copia(BASICO), p = PRESET_MES[t] || PRESET_MES.ninguno; for (var k in p) o[k] = p[k]; return o; }
+  function tipoObjDe(id) { var o = porId(OBJETIVOS, id); return o ? o.tipo : "ninguno"; }
+
+  var nextId = 1;
+  function nuevaFuente(o) { o = o || {}; return { id: nextId++, tipo: o.tipo || "", detalle: o.detalle || "", monto: o.monto || "", frecuencia: o.frecuencia || "mensual", pct: o.pct || null, tocado: !!o.tocado }; }
+  var nextGx = 1;
+  function nuevoGastoExtra(o) { o = o || {}; return { id: nextGx++, label: o.label || "", rubro: rubroDe(o.rubro) ? o.rubro : "otros", monto: o.monto || "", frec: fGasto(o.frec).id }; }
+  function defaults() {
+    return {
+      nombre: "", fuentes: [nuevaFuente()],
+      obj: "", objOtro: "", meta: "", metaTiene: "", plazo: 12, ahorroEmerg: "", deudaTotal: "",
+      gastos: {}, gastosExtra: [],
+      pct: presetMes("ninguno"), pctTocado: false, pctReales: false, pctAuto: false, provisionMes: 0, realNota: "",
+      inflacion: String(INF_DEFAULT),
+      paso: 1
+    };
+  }
+  function load() {
+    var s = null;
+    try { var raw = localStorage.getItem(KEY); if (raw) s = JSON.parse(raw); } catch (e) { s = null; }
+    if (!s || typeof s !== "object") return defaults();
+    var d = defaults();
+    function str(v) { return typeof v === "string" ? v : (typeof v === "number" ? String(v) : ""); }
+    d.nombre = str(s.nombre);
+    if (Array.isArray(s.fuentes) && s.fuentes.length) {
+      d.fuentes = s.fuentes.map(function (f) {
+        f = f || {};
+        var pct = null;
+        if (f.pct && typeof f.pct === "object") { pct = {}; BOLSAS.forEach(function (b) { pct[b.id] = clamp(Number(f.pct[b.id]) || 0); }); }
+        return nuevaFuente({ tipo: tipoDe(f.tipo) ? f.tipo : "", detalle: str(f.detalle), monto: str(f.monto), frecuencia: freq(f.frecuencia).id, pct: pct, tocado: !!f.tocado && !!pct });
+      });
+    }
+    d.obj = porId(OBJETIVOS, s.obj) ? s.obj : "";
+    d.objOtro = str(s.objOtro); d.meta = str(s.meta); d.metaTiene = str(s.metaTiene);
+    d.ahorroEmerg = str(s.ahorroEmerg); d.deudaTotal = str(s.deudaTotal);
+    d.plazo = PLAZOS.indexOf(Number(s.plazo)) >= 0 ? Number(s.plazo) : 12;
+    if (s.gastos && typeof s.gastos === "object") {
+      GASTOS_BASE.forEach(function (g) { var v = s.gastos[g.id]; if (v && typeof v === "object") d.gastos[g.id] = { monto: str(v.monto), frec: fGasto(v.frec || g.frec).id }; });
+    }
+    if (Array.isArray(s.gastosExtra)) d.gastosExtra = s.gastosExtra.map(function (x) { x = x || {}; return nuevoGastoExtra({ label: str(x.label), rubro: x.rubro, monto: str(x.monto), frec: x.frec }); });
+    d.pctTocado = !!s.pctTocado; d.pctReales = !!s.pctReales; d.pctAuto = !!s.pctAuto;
+    d.provisionMes = Number(s.provisionMes) || 0; d.realNota = str(s.realNota);
+    d.pct = presetMes(tipoObjDe(d.obj));
+    if (s.pct && typeof s.pct === "object") RUBROS.forEach(function (r) { var v = Number(s.pct[r.id]); if (isFinite(v)) d.pct[r.id] = clamp(v); });
+    d.inflacion = str(s.inflacion) || String(INF_DEFAULT);
+    d.paso = [1, 2, 3, 4, 5, 6].indexOf(s.paso) >= 0 ? s.paso : 1;
+    return d;
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sin almacenamiento */ } }
+
+  var state = load();
+
+  /* =========================================================
+     Ingresos: el uso se decide solo por la frecuencia
+     ========================================================= */
+  function montoDe(f) { return parseMonto(f.monto); }
+  function esRegular(f) { return freq(f.frecuencia).regular; }
+  function esSeguro(f) { var t = tipoDe(f.tipo); return t ? t.seguro : true; }
+  function anualDe(f) { return montoDe(f) * freq(f.frecuencia).porAnio; }
+  function destinoDe(f) {
+    if (esRegular(f)) return "diario";
+    if (f.frecuencia === "bimestral") {
+      var hayOtro = state.fuentes.some(function (o) { return o !== f && montoDe(o) > 0 && esRegular(o); });
+      return hayOtro ? "extra" : "diario";
+    }
+    return "extra";
+  }
+  function baseMes() { return state.fuentes.reduce(function (a, f) { return a + (destinoDe(f) === "diario" ? anualDe(f) / 12 : 0); }, 0); }
+  function baseSeguro() { return state.fuentes.reduce(function (a, f) { return a + (destinoDe(f) === "diario" && esSeguro(f) ? anualDe(f) / 12 : 0); }, 0); }
+  function extraFuentes() { return state.fuentes.filter(function (f) { return montoDe(f) > 0 && destinoDe(f) === "extra"; }); }
+  function extraAnio() { return extraFuentes().reduce(function (a, f) { return a + anualDe(f); }, 0); }
+  function totalAnual() { return state.fuentes.reduce(function (a, f) { return a + anualDe(f); }, 0); }
+  function nombreFuente(f) {
+    var d = (f.detalle || "").trim();
+    if (d) return d;
+    var t = tipoDe(f.tipo);
+    return t ? t.label : "Ingreso " + (state.fuentes.indexOf(f) + 1);
+  }
+  function fuentePorId(id) { for (var i = 0; i < state.fuentes.length; i++) if (String(state.fuentes[i].id) === String(id)) return state.fuentes[i]; return null; }
+
+  /* Texto de uso recomendado para cada ingreso */
+  function usoTexto(f) {
+    var t = tipoObj(), corto = objCorto(), d = destinoDe(f);
+    if (d === "diario" && esRegular(f)) return "Para sus gastos fijos de cada mes: casa, servicios, comida, salud y transporte.";
+    if (d === "diario") return "Para sus gastos de cada mes, porque es su único ingreso frecuente. Cuando lo reciba, guarde la mitad para el segundo mes.";
+    if (f.frecuencia === "bimestral") {
+      if (t === "meta") return "Para su objetivo (" + corto + ") y su fondo para emergencias. Como llega seguido, le ayuda a juntar parejo.";
+      if (t === "emergencias") return "Para su fondo para emergencias y para ir juntando los pagos grandes del año.";
+      if (t === "deudas") return "Para adelantar pagos de sus deudas y para su fondo para emergencias.";
+      return "Para su fondo para emergencias y para ir juntando los pagos grandes del año (predial, tenencia, seguros).";
+    }
+    if (f.frecuencia === "anual") {
+      var r = "Para los pagos grandes de inicio de año (predial, tenencia o refrendo, seguros) y las fiestas de fin de año";
+      if (t === "meta") r += ", y una buena parte para su objetivo (" + corto + ")";
+      else if (t === "deudas") r += ", y la mitad para adelantar pagos de sus deudas";
+      else if (t === "emergencias") r += ", y la mitad para su fondo para emergencias";
+      return r + ".";
+    }
+    if (t === "meta") return "Para su objetivo (" + corto + ") y su fondo para emergencias. No lo use para el gasto diario.";
+    if (t === "deudas") return "Para pagar sus deudas. No lo use para el gasto diario.";
+    return "Para su fondo para emergencias. No lo use para el gasto diario.";
+  }
+
+  /* =========================================================
+     Objetivo
+     ========================================================= */
+  function objetivo() { return porId(OBJETIVOS, state.obj); }
+  function tipoObj() { return tipoObjDe(state.obj); }
+  function objCorto() { var o = objetivo(); if (!o) return ""; if (o.id === "otro") return state.objOtro.trim() || "Otro objetivo"; return o.corto; }
+  function objTitulo() { var o = objetivo(); if (!o) return ""; if (o.id === "otro") return state.objOtro.trim() || "Otro objetivo"; return o.titulo; }
+  function nombreMeta() { var o = objetivo(); if (o && o.id === "otro" && !state.objOtro.trim()) return "Mi objetivo"; return "Mi objetivo: " + objCorto(); }
+  function bindings() { var t = tipoObj(); return { meta: t === "deudas" ? "deudaTotal" : "meta", tiene: t === "emergencias" ? "ahorroEmerg" : "metaTiene" }; }
+  function normalizarOcultos() {
+    if (tipoObj() === "meta") return;
+    if (state.pct.meta) { state.pct.ahorro = (state.pct.ahorro || 0) + state.pct.meta; state.pct.meta = 0; }
+    state.fuentes.forEach(function (f) {
+      if (f.tocado && f.pct && f.pct.objetivo) { f.pct.emergencias = (f.pct.emergencias || 0) + f.pct.objetivo; f.pct.objetivo = 0; }
+    });
+  }
+  function cambiarObjetivo(id) {
+    state.obj = id;
+    if (!state.pctTocado) state.pct = presetMes(tipoObj());
+    normalizarOcultos();
+    save();
+    renderObjetivo();
+  }
+
+  /* =========================================================
+     Hoja de gastos
+     ========================================================= */
+  function gastoItems() {
+    var out = GASTOS_BASE.map(function (g) {
+      var v = state.gastos[g.id] || {};
+      return { key: g.id, label: g.label, rubro: g.rubro, monto: parseMonto(v.monto), frec: v.frec || g.frec };
+    });
+    state.gastosExtra.forEach(function (x) {
+      out.push({ key: "x" + x.id, label: x.label.trim() || "Otro gasto", rubro: x.rubro, monto: parseMonto(x.monto), frec: x.frec, custom: true });
+    });
+    return out;
+  }
+  function esGrande(frec) { return frec === "anual" || frec === "semestral"; }
+  function resumenGastos() {
+    var porRubro = {}, mes = 0, grandes = 0;
+    RUBROS.forEach(function (r) { porRubro[r.id] = { mes: 0, grandes: 0 }; });
+    var items = gastoItems().filter(function (x) { return x.monto > 0; });
+    items.forEach(function (x) {
+      x.anio = x.monto * fGasto(x.frec).porAnio;
+      x.mes = x.anio / 12;
+      x.grande = esGrande(x.frec);
+      var pr = porRubro[x.rubro] || porRubro.otros;
+      if (x.grande) { pr.grandes += x.anio; grandes += x.anio; } else { pr.mes += x.mes; mes += x.mes; }
+    });
+    return { items: items, porRubro: porRubro, mes: mes, grandes: grandes, hay: items.length > 0 };
+  }
+
+  /* =========================================================
+     Reparto: dinero de cada mes ("mes") y cada pago extra ("f<id>")
+     ========================================================= */
+  function rubrosVisibles() { var t = tipoObj(); return RUBROS.filter(function (r) { return r.id !== "meta" || t === "meta"; }); }
+  function bolsasVisibles() { var t = tipoObj(); return BOLSAS.filter(function (b) { return b.id !== "objetivo" || t === "meta"; }); }
+  function nombreItem(g, it) { if (it.id === "meta" || (g !== "mes" && it.id === "objetivo")) return nombreMeta(); return it.nombre; }
+  function esDelObjetivo(g, id) {
+    var t = tipoObj();
+    if (g === "mes") return id === "meta" || (t === "emergencias" && id === "ahorro") || (t === "deudas" && id === "deudas");
+    return id === "objetivo" || (t === "emergencias" && id === "emergencias") || (t === "deudas" && id === "deudas");
+  }
+  function presetFuente(f) {
+    var fr = f.frecuencia === "anual" || f.frecuencia === "unica" ? f.frecuencia : "bimestral";
+    return copia(PRESET_FUENTE[fr][tipoObj()] || PRESET_FUENTE[fr].ninguno);
+  }
+  function pctFuente(f) { if (!f.tocado || !f.pct) f.pct = presetFuente(f); return f.pct; }
+
+  var REP_MES = { items: rubrosVisibles, pct: function () { return state.pct; }, base: baseMes, unidad: "al mes", cosa: "algún rubro", marcar: function () { state.pctTocado = true; state.pctAuto = false; } };
+  function rep(g) {
+    if (g === "mes") return REP_MES;
+    var f = fuentePorId(g.slice(1));
+    if (!f) return null;
+    return { items: bolsasVisibles, pct: function () { return pctFuente(f); }, base: function () { return montoDe(f); }, unidad: "por pago", cosa: "alguna bolsa", marcar: function () { f.tocado = true; }, f: f };
+  }
+  function gruposRep() { return ["mes"].concat(extraFuentes().map(function (f) { return "f" + f.id; })); }
+  function sumaG(g) { var R = rep(g), P = R.pct(); return R.items().reduce(function (a, it) { return a + (P[it.id] || 0); }, 0); }
+  function estadoG(g, sum) {
+    if (sum === undefined) sum = sumaG(g);
+    var resto = rep(g).base() * (100 - sum) / 100;
+    if (Math.abs(100 - sum) < 0.005 || Math.abs(resto) < 1) return "listo";
+    return sum < 100 ? "falta" : "pasado";
+  }
+  function basicosMes() { var b = baseMes(); return RUBROS.filter(function (r) { return r.grupo === "basico"; }).reduce(function (a, r) { return a + b * (state.pct[r.id] || 0) / 100; }, 0); }
+  function anualesExtras() { return extraFuentes().reduce(function (a, f) { return a + anualDe(f) * (pctFuente(f).anuales || 0) / 100; }, 0); }
+
+  function tarjetaItem(g, it, opt) {
+    opt = opt || {};
+    var card = document.createElement("div");
+    card.className = "rubro";
+    card.style.setProperty("--c", "var(" + it.color + ")");
+    var nombre = nombreItem(g, it);
+    var tag = "h4";
+    var pill = esDelObjetivo(g, it.id) ? '<span class="pill">Su objetivo</span>' : "";
+    var u = g === "mes" ? "al mes" : "por pago";
+    var key = g + "-" + it.id;
+    card.innerHTML =
+      '<div class="rubro-info"><' + tag + ' class="item-t"><span class="sw" aria-hidden="true"></span><span>' + esc(nombre) + "</span>" + pill + "</" + tag + ">" +
+        (opt.sinDesc ? "" : "<p>" + esc(it.desc) + "</p>") +
+        (opt.real ? '<p class="real">' + opt.real + "</p>" : "") +
+      "</div>" +
+      '<div class="rubro-ctrl">' +
+        '<div class="ctrl">' +
+          '<label for="pct-' + key + '">Porcentaje</label>' +
+          '<div class="pct-box">' +
+            '<button type="button" class="pm" data-delta="-1" data-g="' + g + '" data-id="' + it.id + '" aria-label="Bajar 1% a ' + esc(nombre) + '">−</button>' +
+            '<div class="pct-campo"><input class="pct-input" id="pct-' + key + '" data-g="' + g + '" data-id="' + it.id + '" data-k="pct" type="text" inputmode="decimal" autocomplete="off" maxlength="6"><span class="pct-sign" aria-hidden="true">%</span></div>' +
+            '<button type="button" class="pm" data-delta="1" data-g="' + g + '" data-id="' + it.id + '" aria-label="Subir 1% a ' + esc(nombre) + '">+</button>' +
+          "</div>" +
+        "</div>" +
+        '<span class="igual" aria-hidden="true">=</span>' +
+        '<div class="ctrl">' +
+          '<label for="monto-' + key + '">En pesos ' + u + "</label>" +
+          '<div class="dinero"><span aria-hidden="true">$</span><input class="input monto-input" id="monto-' + key + '" data-g="' + g + '" data-id="' + it.id + '" data-k="monto" type="text" inputmode="decimal" autocomplete="off"></div>' +
+        "</div>" +
+      "</div>";
+    return card;
+  }
+
+  function cajaResumen(g, titulo) {
+    var d = document.createElement("div");
+    d.className = "resumen-pct estatico";
+    d.id = "rp-" + g;
+    d.setAttribute("data-estado", "listo");
+    d.innerHTML =
+      '<div class="rp-top"><span class="rp-lbl">' + esc(titulo) + ' <small id="rp-' + g + '-sub"></small></span><span class="rp-num" id="rp-' + g + '-num">100%</span></div>' +
+      '<div class="barra" aria-hidden="true"><div id="rp-' + g + '-barra"></div></div>' +
+      '<p class="rp-msg" id="rp-' + g + '-msg" role="status" aria-live="polite"></p>';
+    return d;
+  }
+
+  function renderRepartoMes() {
+    var cont = $("#rubros");
+    cont.textContent = "";
+    var vis = rubrosVisibles(), rg = resumenGastos();
+    var prov = Math.max(0, rg.grandes - anualesExtras()) / 12;
+    GRUPOS.forEach(function (gr) {
+      var items = vis.filter(function (r) { return r.grupo === gr.id; });
+      if (!items.length) return;
+      var head = document.createElement("div");
+      head.className = "grupo-head";
+      head.innerHTML = "<h3>" + esc(gr.titulo) + "</h3><p>" + esc(gr.desc) + '</p><p class="grupo-suma" id="gs-' + gr.id + '"></p>';
+      cont.appendChild(head);
+      items.forEach(function (r) {
+        var real = "";
+        if (rg.hay) {
+          var pr = rg.porRubro[r.id], m = pr.mes + (rg.grandes > 0 ? prov * pr.grandes / rg.grandes : 0);
+          if (m > 0.5) real = "Según su hoja de gastos: <strong>" + money(m) + "</strong> al mes" + (pr.grandes > 0 && prov > 0 ? " (incluye lo que debe apartar para sus pagos grandes)" : "");
+        }
+        cont.appendChild(tarjetaItem("mes", r, { real: real }));
+      });
+    });
+    syncCampos(null);
+    updateResumen("mes");
+  }
+
+  function renderExtras() {
+    var cont = $("#extras");
+    cont.textContent = "";
+    var ley = $("#leyenda-bolsas");
+    ley.textContent = "";
+    bolsasVisibles().forEach(function (b) {
+      var li = document.createElement("li");
+      li.style.setProperty("--c", "var(" + b.color + ")");
+      li.innerHTML = '<span class="sw" aria-hidden="true"></span><span><strong>' + esc(nombreItem("f", b)) + "</strong>. " + esc(b.desc) + "</span>";
+      ley.appendChild(li);
+    });
+    extraFuentes().forEach(function (f) {
+      var g = "f" + f.id;
+      var sec = document.createElement("section");
+      sec.className = "extra-fuente";
+      sec.setAttribute("aria-label", nombreFuente(f));
+      var head = document.createElement("div");
+      head.className = "ef-head";
+      head.innerHTML = "<h3>" + esc(nombreFuente(f)) + '</h3><p class="ef-monto">' + money(montoDe(f)) + " · " + esc(freq(f.frecuencia).label.toLowerCase()) + (f.frecuencia === "bimestral" ? " (" + money(anualDe(f)) + " al año)" : "") +
+        '</p><p class="ef-reco"><strong>Recomendado:</strong> ' + esc(usoTexto(f)) + "</p>";
+      sec.appendChild(head);
+      sec.appendChild(cajaResumen(g, "Repartido"));
+      var lista = document.createElement("div");
+      lista.className = "rubros";
+      bolsasVisibles().forEach(function (b) { lista.appendChild(tarjetaItem(g, b, { sinDesc: true })); });
+      sec.appendChild(lista);
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-texto";
+      btn.setAttribute("data-sugerido", g);
+      btn.textContent = "Volver al reparto recomendado";
+      sec.appendChild(btn);
+      cont.appendChild(sec);
+    });
+    syncCampos(null);
+    extraFuentes().forEach(function (f) { updateResumen("f" + f.id); });
+    updateCobertura();
+  }
+
+  /* Rellena porcentaje y pesos, menos la casilla que la persona está escribiendo */
+  function syncCampos(skip) {
+    gruposRep().forEach(function (g) {
+      var R = rep(g);
+      if (!R) return;
+      var P = R.pct(), base = R.base();
+      R.items().forEach(function (it) {
+        var p = document.getElementById("pct-" + g + "-" + it.id);
+        var m = document.getElementById("monto-" + g + "-" + it.id);
+        if (p && p !== skip) p.value = numPct(P[it.id] || 0);
+        if (m && m !== skip) { var v = Math.round(base * (P[it.id] || 0) / 100); m.value = (v === 0 ? 0 : v).toLocaleString("es-MX"); }
+      });
+    });
+  }
+
+  function updateResumen(g) {
+    var box = document.getElementById("rp-" + g);
+    if (!box) return;
+    var R = rep(g), base = R.base(), sum = sumaG(g), est = estadoG(g, sum), u = R.unidad;
+    var r = est === "listo" ? base : base * sum / 100;
+    box.setAttribute("data-estado", est);
+    document.getElementById("rp-" + g + "-num").textContent = est === "listo" ? "100%" : fmtPct(sum);
+    document.getElementById("rp-" + g + "-sub").textContent = money(r) + " de " + money(base) + " " + u;
+    document.getElementById("rp-" + g + "-barra").style.width = Math.min(100, sum) + "%";
+    var msg;
+    if (est === "listo") msg = "Listo. Ya repartió todo.";
+    else if (est === "falta") msg = "Le faltan " + money(base - r) + " " + u + " por repartir (" + fmtPct(100 - sum) + ").";
+    else msg = "Se pasó por " + money(r - base) + " " + u + " (" + fmtPct(sum - 100) + "). Baje " + R.cosa + ".";
+    document.getElementById("rp-" + g + "-msg").textContent = msg;
+    if (g === "mes") {
+      GRUPOS.forEach(function (gr) {
+        var el = document.getElementById("gs-" + gr.id);
+        if (!el) return;
+        var p = rubrosVisibles().filter(function (x) { return x.grupo === gr.id; }).reduce(function (a, x) { return a + (state.pct[x.id] || 0); }, 0);
+        el.textContent = fmtPct(p) + " de su ingreso · " + money(base * p / 100) + " al mes";
+      });
+    }
+  }
+
+  function textoCobertura() {
+    var rg = resumenGastos();
+    if (rg.grandes <= 0) return null;
+    var a = anualesExtras(), prov = state.pctReales ? state.provisionMes * 12 : 0;
+    var txt = "Sus pagos grandes del año suman " + money(rg.grandes) + ". ";
+    if (a > 0) txt += "Su dinero extra junta " + money(a) + " para eso";
+    else txt += "Su dinero extra no aparta nada para eso";
+    if (prov > 0.5) txt += " y su presupuesto de cada mes aparta " + money(prov) + " al año";
+    txt += ".";
+    var falta = rg.grandes - a - prov;
+    if (falta <= 1) return { e: "ok", txt: txt + " Alcanza para cubrirlos." };
+    return { e: "ojo", txt: txt + " Le faltarían " + money(falta) + ": súbale a la bolsa «Pagos grandes del año» o aparte " + money(falta / 12) + " cada mes." };
+  }
+  function updateCobertura() {
+    var el = $("#ext-cobertura"), m = textoCobertura();
+    el.hidden = !m;
+    if (m) { el.textContent = m.txt; el.setAttribute("data-e", m.e); }
+  }
+
+  function setPctG(g, id, v) {
+    var R = rep(g);
+    if (!R) return;
+    R.pct()[id] = clamp(v);
+    R.marcar();
+    save();
+    syncCampos(document.activeElement);
+    updateResumen(g);
+    if (g !== "mes") updateCobertura();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest) return;
+    var b = e.target.closest("[data-delta]");
+    if (b) {
+      var g = b.getAttribute("data-g"), id = b.getAttribute("data-id"), R = rep(g);
+      if (R) setPctG(g, id, round2((R.pct()[id] || 0) + Number(b.getAttribute("data-delta"))));
+      return;
+    }
+    var s = e.target.closest("[data-sugerido]");
+    if (s) {
+      var f = fuentePorId(s.getAttribute("data-sugerido").slice(1));
+      if (f) { f.tocado = false; f.pct = null; save(); syncCampos(null); updateResumen("f" + f.id); updateCobertura(); }
+    }
+  });
+  document.addEventListener("input", function (e) {
+    var el = e.target;
+    if (!el.getAttribute) return;
+    var g = el.getAttribute("data-g");
+    if (!g) return;
+    var R = rep(g);
+    if (!R) return;
+    var id = el.getAttribute("data-id"), k = el.getAttribute("data-k");
+    if (k === "pct") { var n = parseFloat(String(el.value).replace(",", ".").replace(/[^0-9.]/g, "")); setPctG(g, id, isFinite(n) ? round2(n) : 0); }
+    else if (k === "monto") { var base = R.base(); if (base > 0) setPctG(g, id, parseMonto(el.value) / base * 100); }
+  });
+  document.addEventListener("focusout", function (e) { var el = e.target; if (el.tagName === "INPUT" && el.getAttribute("data-g")) syncCampos(null); });
+  document.addEventListener("focusin", function (e) { var el = e.target; if (el.tagName === "INPUT" && (el.getAttribute("data-g") || el.id === "inflacion")) { try { el.select(); } catch (err) { /* nada */ } } });
+
+  $("#btn-sugerido-mes").addEventListener("click", function () {
+    state.pct = presetMes(tipoObj()); state.pctTocado = true; state.pctAuto = false; state.pctReales = false; state.provisionMes = 0; state.realNota = "";
+    save(); $("#p4-real-nota").hidden = true; renderRepartoMes();
+  });
+  $("#btn-usar-reales").addEventListener("click", function () {
+    if (aplicarGastosReales()) { mostrarNotaReal(); renderRepartoMes(); }
+  });
+
+  /* Llena el reparto del mes con la hoja de gastos */
+  function aplicarGastosReales() {
+    var rg = resumenGastos(), base = baseMes();
+    if (!rg.hay || base <= 0) return false;
+    var t = tipoObj();
+    var prov = Math.max(0, rg.grandes - anualesExtras()) / 12;
+    var p = {};
+    RUBROS.forEach(function (r) {
+      var pr = rg.porRubro[r.id];
+      var m = pr.mes + (rg.grandes > 0 ? prov * pr.grandes / rg.grandes : 0);
+      p[r.id] = m / base * 100;
+    });
+    if (t !== "meta") p.meta = 0;
+    var sum = RUBROS.reduce(function (a, r) { return a + p[r.id]; }, 0);
+    var sobra = 100 - sum, destino;
+    if (sobra > 0.005) {
+      if (t === "meta") { p.ahorro += sobra / 2; p.meta += sobra / 2; destino = "su ahorro para emergencias y su objetivo, mitad y mitad"; }
+      else if (t === "deudas" && p.deudas > 0) { p.deudas += sobra; destino = "el pago de sus deudas"; }
+      else { p.ahorro += sobra; destino = "su ahorro para emergencias"; }
+    }
+    RUBROS.forEach(function (r) { p[r.id] = clamp(round2(p[r.id] * 100) / 100); });
+    var nota = "Llenamos cada rubro con lo que anotó en su hoja de gastos";
+    if (prov > 0.5) nota += ", más " + money(prov) + " al mes para los pagos grandes que no alcanza a cubrir su dinero extra";
+    nota += ". Los rubros que dejó en blanco quedaron en $0; si sí gasta en ellos, súbales. ";
+    if (sobra > 0.005) nota += "Lo que le sobra (" + money(sobra * base / 100) + " al mes) lo pusimos en " + destino + ".";
+    else nota += "Sus gastos de hoy superan su dinero de cada mes por " + money(-sobra * base / 100) + ". Revise en qué puede recortar.";
+    state.pct = p; state.pctTocado = true; state.pctReales = true; state.pctAuto = true; state.provisionMes = prov; state.realNota = nota;
+    save();
+    return true;
+  }
+  function mostrarNotaReal() {
+    var n = $("#p4-real-nota");
+    n.textContent = state.realNota;
+    n.hidden = !(state.pctReales && state.realNota);
+  }
+
+  /* =========================================================
+     Tamaño de letra
+     ========================================================= */
+  function aplicarLetra(v) {
+    document.documentElement.setAttribute("data-letra", v);
+    $("#letra-normal").setAttribute("aria-pressed", v === "normal" ? "true" : "false");
+    $("#letra-grande").setAttribute("aria-pressed", v === "grande" ? "true" : "false");
+    try { localStorage.setItem(KEY_LETRA, v); } catch (e) { /* nada */ }
+  }
+  var letraGuardada = "normal";
+  try { letraGuardada = localStorage.getItem(KEY_LETRA) === "grande" ? "grande" : "normal"; } catch (e) { letraGuardada = "normal"; }
+  aplicarLetra(letraGuardada);
+  $("#letra-normal").addEventListener("click", function () { aplicarLetra("normal"); });
+  $("#letra-grande").addEventListener("click", function () { aplicarLetra("grande"); });
+
+  /* =========================================================
+     Paso 1: ingresos
+     ========================================================= */
+  function renderFuentes() {
+    var cont = $("#fuentes");
+    cont.textContent = "";
+    var optsTipo = '<option value="">Elija una opción…</option>' + TIPOS.map(function (t) { return '<option value="' + t.id + '">' + esc(t.label) + "</option>"; }).join("");
+    var optsFrec = FRECUENCIAS.map(function (q) { return '<option value="' + q.id + '">' + q.label + "</option>"; }).join("");
+    state.fuentes.forEach(function (f, i) {
+      var n = f.id;
+      var card = document.createElement("div");
+      card.className = "fuente";
+      card.setAttribute("data-id", String(n));
+      card.innerHTML =
+        '<div class="fuente-head"><h3>Ingreso ' + (i + 1) + "</h3>" +
+          (state.fuentes.length > 1 ? '<button type="button" class="btn-quitar" data-quitar="' + n + '">Quitar</button>' : "") + "</div>" +
+        '<div class="campo"><label for="ft-' + n + '">¿Qué tipo de ingreso es?</label><select class="input" id="ft-' + n + '" data-campo="tipo">' + optsTipo + "</select></div>" +
+        '<div class="campo"><label for="fd-' + n + '">Descripción <span class="ayuda">(opcional)</span></label>' +
+          '<input class="input" id="fd-' + n + '" data-campo="detalle" type="text" autocomplete="off" maxlength="60" placeholder="Por ejemplo: renta del local de la calle Hidalgo"></div>' +
+        '<div class="fila">' +
+          '<div class="campo"><label for="fm-' + n + '">¿Cuánto recibe cada vez?</label>' +
+            '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="fm-' + n + '" data-campo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+          '<div class="campo"><label for="ff-' + n + '">¿Cada cuándo lo recibe?</label><select class="input" id="ff-' + n + '" data-campo="frecuencia">' + optsFrec + "</select></div>" +
+        "</div>" +
+        '<div class="uso" data-uso><span class="uso-t" data-uso-t></span><span data-uso-txt></span><span class="uso-eq" data-uso-eq></span></div>';
+      card.querySelector('[data-campo="tipo"]').value = f.tipo;
+      card.querySelector('[data-campo="detalle"]').value = f.detalle;
+      card.querySelector('[data-campo="monto"]').value = f.monto;
+      card.querySelector('[data-campo="frecuencia"]').value = f.frecuencia;
+      cont.appendChild(card);
+    });
+    $("#nombre").value = state.nombre;
+    updateTotales();
+  }
+
+  function fuenteDe(el) {
+    var card = el.closest(".fuente");
+    if (!card) return null;
+    var f = fuentePorId(card.getAttribute("data-id"));
+    return f ? { f: f, card: card } : null;
+  }
+
+  function onCampo(e) {
+    var el = e.target, campo = el.getAttribute && el.getAttribute("data-campo");
+    if (!campo) return;
+    var hit = fuenteDe(el);
+    if (!hit) return;
+    hit.f[campo] = el.value;
+    if (e.type === "change" && campo === "tipo") {
+      var t = tipoDe(el.value);
+      if (t) { hit.f.frecuencia = t.frec; hit.card.querySelector('[data-campo="frecuencia"]').value = t.frec; }
+    }
+    if (e.type === "change" && (campo === "tipo" || campo === "frecuencia")) { hit.f.tocado = false; hit.f.pct = null; }
+    save();
+    updateTotales();
+  }
+  $("#fuentes").addEventListener("input", onCampo);
+  $("#fuentes").addEventListener("change", onCampo);
+  $("#fuentes").addEventListener("focusout", function (e) {
+    var el = e.target;
+    if (el.getAttribute("data-campo") !== "monto") return;
+    var hit = fuenteDe(el);
+    if (!hit) return;
+    var n = parseMonto(el.value);
+    el.value = n > 0 ? n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : "";
+    hit.f.monto = el.value;
+    save();
+  });
+  $("#fuentes").addEventListener("click", function (e) {
+    var q = e.target.closest("[data-quitar]");
+    if (!q) return;
+    var id = q.getAttribute("data-quitar");
+    state.fuentes = state.fuentes.filter(function (f) { return String(f.id) !== id; });
+    if (!state.fuentes.length) state.fuentes = [nuevaFuente()];
+    save();
+    renderFuentes();
+  });
+  $("#nombre").addEventListener("input", function (e) { state.nombre = e.target.value; save(); });
+  $("#btn-agregar").addEventListener("click", function () {
+    var f = nuevaFuente();
+    state.fuentes.push(f);
+    save();
+    renderFuentes();
+    var sel = document.getElementById("ft-" + f.id);
+    if (sel) sel.focus();
+  });
+  $("#btn-ejemplo").addEventListener("click", function () {
+    state.fuentes = [
+      nuevaFuente({ tipo: "pension-imss", monto: "9,800", frecuencia: "mensual" }),
+      nuevaFuente({ tipo: "renta", detalle: "Renta de un cuarto", monto: "2,500", frecuencia: "mensual" }),
+      nuevaFuente({ tipo: "apoyo", monto: "1,000", frecuencia: "quincenal" }),
+      nuevaFuente({ tipo: "aguinaldo", monto: "9,800", frecuencia: "anual" })
+    ];
+    save();
+    renderFuentes();
+  });
+
+  function updateTotales() {
+    $("#tot-mes").textContent = money(baseMes());
+    $("#tot-extra").textContent = money(extraAnio());
+    $$("#fuentes .fuente").forEach(function (card) {
+      var hit = fuenteDe(card);
+      if (!hit) return;
+      var f = hit.f, d = destinoDe(f), n = montoDe(f);
+      var box = card.querySelector("[data-uso]");
+      box.setAttribute("data-d", d);
+      card.querySelector("[data-uso-t]").textContent = d === "diario" ? "Uso recomendado · dinero de cada mes" : "Uso recomendado · dinero extra";
+      card.querySelector("[data-uso-txt]").textContent = usoTexto(f);
+      var eq = "";
+      if (n > 0) {
+        if (d === "diario" && f.frecuencia !== "mensual") eq = "Equivale a " + money(anualDe(f) / 12) + " al mes.";
+        else if (d === "extra" && freq(f.frecuencia).porAnio > 1) eq = "Suma " + money(anualDe(f)) + " al año.";
+      }
+      var eqEl = card.querySelector("[data-uso-eq]");
+      eqEl.textContent = eq;
+      eqEl.hidden = !eq;
+    });
+    if (totalAnual() > 0) $("#err-ingreso").hidden = true;
+    $("#btn-ejemplo").hidden = totalAnual() > 0;
+    updateStepper();
+  }
+
+  /* =========================================================
+     Paso 2: objetivo
+     ========================================================= */
+  function renderOps() {
+    var cont = $("#ops");
+    cont.textContent = "";
+    OBJETIVOS.forEach(function (o) {
+      var lab = document.createElement("label");
+      lab.className = "op";
+      lab.innerHTML = '<input type="radio" name="objetivo" value="' + o.id + '"><span class="op-t">' + esc(o.titulo) + '</span><span class="op-d">' + esc(o.desc) + "</span>";
+      cont.appendChild(lab);
+    });
+  }
+  $("#ops").addEventListener("change", function (e) { if (e.target.name === "objetivo") cambiarObjetivo(e.target.value); });
+
+  function renderObjetivo() {
+    var o = objetivo(), t = tipoObj();
+    $$("#ops .op").forEach(function (lab) { var inp = lab.querySelector("input"); inp.checked = inp.value === state.obj; lab.classList.toggle("sel", inp.checked); });
+    $("#obj-detalle").hidden = !(t === "meta" || t === "emergencias" || t === "deudas");
+    $("#obj-detalle-t").textContent = o ? o.titulo : "";
+    $("#c-objotro").hidden = !(o && o.id === "otro");
+    $("#c-tiene").hidden = t === "deudas";
+    $("#c-emerg").hidden = t === "emergencias";
+    $("#c-deuda").hidden = t === "deudas";
+    $("#a-meta").hidden = t !== "deudas";
+    $("#l-meta").textContent = t === "deudas" ? "¿Cuánto debe en total?" : t === "emergencias" ? "¿Cuánto quiere juntar?" : "¿Cuánto dinero necesita?";
+    $("#l-tiene").textContent = t === "emergencias" ? "¿Cuánto tiene ya ahorrado para emergencias?" : "¿Cuánto tiene ya juntado para esto?";
+    $("#l-plazo").textContent = t === "deudas" ? "¿En cuánto tiempo quiere terminar de pagar?" : "¿En cuánto tiempo quiere lograrlo?";
+    var b = bindings();
+    $("#obj-meta").value = state[b.meta];
+    $("#obj-tiene").value = state[b.tiene];
+    $("#obj-otro").value = state.objOtro;
+    $("#obj-plazo").value = String(state.plazo);
+    $("#sit-emerg").value = state.ahorroEmerg;
+    $("#sit-deuda").value = state.deudaTotal;
+    updateCalcObj();
+  }
+  function updateCalcObj() {
+    var t = tipoObj(), box = $("#obj-calc"), reco = $("#btn-meta-reco");
+    var r3 = 3 * basicosMes();
+    reco.hidden = !(t === "emergencias" && r3 > 0);
+    if (!reco.hidden) reco.textContent = "Usar lo recomendado: " + money(r3);
+    if (t !== "meta" && t !== "emergencias" && t !== "deudas") { box.hidden = true; return; }
+    var b = bindings(), meta = parseMonto(state[b.meta]), tiene = t === "deudas" ? 0 : parseMonto(state[b.tiene]), txt;
+    if (t === "emergencias" && !meta) txt = "Le recomendamos juntar al menos 3 meses de sus gastos indispensables: " + money(r3) + ". Si no escribe otra cantidad, usaremos esa.";
+    else if (!meta) txt = t === "deudas" ? "Escriba cuánto debe para calcular cuánto abonar al mes." : "Escriba la cantidad para calcular cuánto apartar al mes.";
+    else if (tiene >= meta) txt = "¡Ya tiene lo necesario para este objetivo!";
+    else {
+      var x = (meta - tiene) / state.plazo;
+      txt = t === "deudas" ? "Para terminar de pagar en " + fmtMeses(state.plazo) + " necesita abonar " + money(x) + " al mes, sin contar intereses." : "Para lograrlo en " + fmtMeses(state.plazo) + " necesita apartar " + money(x) + " al mes.";
+      txt += " En los siguientes pasos verá si su plan lo alcanza.";
+    }
+    box.textContent = txt;
+    box.hidden = false;
+  }
+  $("#obj-meta").addEventListener("input", function (e) { state[bindings().meta] = e.target.value; save(); updateCalcObj(); });
+  $("#obj-tiene").addEventListener("input", function (e) { state[bindings().tiene] = e.target.value; save(); updateCalcObj(); });
+  $("#obj-otro").addEventListener("input", function (e) { state.objOtro = e.target.value; save(); });
+  $("#obj-plazo").addEventListener("change", function (e) { state.plazo = Number(e.target.value) || 12; save(); updateCalcObj(); });
+  $("#sit-emerg").addEventListener("input", function (e) { state.ahorroEmerg = e.target.value; save(); });
+  $("#sit-deuda").addEventListener("input", function (e) { state.deudaTotal = e.target.value; save(); });
+  $$("[data-dinero]").forEach(function (el) {
+    el.addEventListener("focusout", function () {
+      var n = parseMonto(el.value);
+      el.value = n > 0 ? n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : "";
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+  $("#btn-meta-reco").addEventListener("click", function () {
+    var v = Math.round(3 * basicosMes()).toLocaleString("es-MX");
+    state.meta = v; $("#obj-meta").value = v; save(); updateCalcObj();
+  });
+
+  /* =========================================================
+     Paso 3: hoja de gastos
+     ========================================================= */
+  function optsFrecGasto() { return FREC_GASTO.map(function (q) { return '<option value="' + q.id + '">' + q.label + "</option>"; }).join(""); }
+  function filaGasto(key, label, monto, frec) {
+    var d = document.createElement("div");
+    d.className = "gasto";
+    d.innerHTML =
+      '<label for="gm-' + key + '">' + esc(label) + '<span class="grande" data-grande hidden>Pago grande del año</span></label>' +
+      '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>' +
+      '<select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec" aria-label="Cada cuándo paga ' + esc(label) + '">' + optsFrecGasto() + "</select>";
+    d.querySelector('[data-gcampo="monto"]').value = monto;
+    d.querySelector('[data-gcampo="frec"]').value = frec;
+    d.querySelector("[data-grande]").hidden = !esGrande(frec);
+    return d;
+  }
+  function renderGastos() {
+    var cont = $("#gastos");
+    cont.textContent = "";
+    RUBROS.forEach(function (r) {
+      var items = GASTOS_BASE.filter(function (g) { return g.rubro === r.id; });
+      if (!items.length) return;
+      var box = document.createElement("div");
+      box.className = "g-grupo";
+      box.style.setProperty("--c", "var(" + r.color + ")");
+      box.innerHTML = '<div class="g-head"><h3><span class="sw" aria-hidden="true"></span>' + esc(r.nombre) + '</h3><span class="g-sub" id="gsub-' + r.id + '"></span></div>';
+      items.forEach(function (g) { var v = state.gastos[g.id] || {}; box.appendChild(filaGasto(g.id, g.label, v.monto || "", v.frec || g.frec)); });
+      cont.appendChild(box);
+    });
+    if (state.gastosExtra.length) {
+      var box = document.createElement("div");
+      box.className = "g-grupo";
+      box.style.setProperty("--c", "var(--c-otros)");
+      box.innerHTML = '<div class="g-head"><h3><span class="sw" aria-hidden="true"></span>Gastos que agregó</h3></div>';
+      var optsR = RUBROS.filter(function (r) { return r.id !== "ahorro" && r.id !== "meta"; }).map(function (r) { return '<option value="' + r.id + '">' + esc(r.nombre) + "</option>"; }).join("");
+      state.gastosExtra.forEach(function (x) {
+        var key = "x" + x.id;
+        var d = document.createElement("div");
+        d.className = "gasto gasto-x";
+        d.innerHTML =
+          '<div class="gx-top"><span class="lbl">Otro gasto</span><button type="button" class="btn-quitar" data-quitar-gasto="' + x.id + '">Quitar</button></div>' +
+          '<div class="campo"><label for="gl-' + key + '">¿Qué es?</label><input class="input" id="gl-' + key + '" data-gasto="' + key + '" data-gcampo="label" type="text" maxlength="50" autocomplete="off" placeholder="Por ejemplo: clases de pintura"></div>' +
+          '<div class="campo"><label for="gr-' + key + '">¿En qué rubro va?</label><select class="input" id="gr-' + key + '" data-gasto="' + key + '" data-gcampo="rubro">' + optsR + "</select></div>" +
+          '<div class="campo"><label for="gm-' + key + '">¿Cuánto paga?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+          '<div class="campo"><label for="gf-' + key + '">¿Cada cuándo?</label><select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec">' + optsFrecGasto() + "</select></div>";
+        d.querySelector('[data-gcampo="label"]').value = x.label;
+        d.querySelector('[data-gcampo="rubro"]').value = x.rubro;
+        d.querySelector('[data-gcampo="monto"]').value = x.monto;
+        d.querySelector('[data-gcampo="frec"]').value = x.frec;
+        box.appendChild(d);
+      });
+      cont.appendChild(box);
+    }
+    updateGastos();
+  }
+  function gastoExtraPorKey(key) { var id = key.slice(1); for (var i = 0; i < state.gastosExtra.length; i++) if (String(state.gastosExtra[i].id) === id) return state.gastosExtra[i]; return null; }
+  function onGasto(e) {
+    var el = e.target, key = el.getAttribute && el.getAttribute("data-gasto");
+    if (!key) return;
+    var campo = el.getAttribute("data-gcampo");
+    if (key.charAt(0) === "x") {
+      var x = gastoExtraPorKey(key);
+      if (x) x[campo] = el.value;
+    } else {
+      var base = porId(GASTOS_BASE, key);
+      var v = state.gastos[key] || { monto: "", frec: base.frec };
+      v[campo] = el.value;
+      state.gastos[key] = v;
+    }
+    if (campo === "frec") { var row = el.closest(".gasto"), tag = row && row.querySelector("[data-grande]"); if (tag) tag.hidden = !esGrande(el.value); }
+    save();
+    updateGastos();
+  }
+  $("#gastos").addEventListener("input", onGasto);
+  $("#gastos").addEventListener("change", onGasto);
+  $("#gastos").addEventListener("focusout", function (e) {
+    var el = e.target;
+    if (el.getAttribute("data-gcampo") !== "monto") return;
+    var n = parseMonto(el.value);
+    el.value = n > 0 ? n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : "";
+    onGasto({ target: el });
+  });
+  $("#gastos").addEventListener("click", function (e) {
+    var q = e.target.closest("[data-quitar-gasto]");
+    if (!q) return;
+    var id = q.getAttribute("data-quitar-gasto");
+    state.gastosExtra = state.gastosExtra.filter(function (x) { return String(x.id) !== id; });
+    save();
+    renderGastos();
+  });
+  $("#btn-agregar-gasto").addEventListener("click", function () {
+    var x = nuevoGastoExtra();
+    state.gastosExtra.push(x);
+    save();
+    renderGastos();
+    var inp = document.getElementById("gl-x" + x.id);
+    if (inp) inp.focus();
+  });
+  $("#btn-ejemplo-gastos").addEventListener("click", function () {
+    var ej = { predial: ["1,800", "anual"], luz: ["900", "bimestral"], agua: ["250", "mensual"], gas: ["450", "mensual"], internet: ["400", "mensual"], celular: ["200", "mensual"],
+      super: ["1,200", "semanal"], fuera: ["600", "mensual"], medicinas: ["800", "mensual"], consultas: ["400", "mensual"], gasolina: ["350", "semanal"],
+      "servicio-auto": ["2,500", "semestral"], "seguro-auto": ["7,500", "anual"], tenencia: ["1,200", "anual"], ropa: ["400", "mensual"], higiene: ["350", "mensual"],
+      salidas: ["600", "mensual"], suscripciones: ["300", "mensual"], mascotas: ["300", "mensual"] };
+    state.gastos = {};
+    for (var k in ej) state.gastos[k] = { monto: ej[k][0], frec: ej[k][1] };
+    state.gastosExtra = [];
+    state.pctTocado = false; state.pctReales = false;
+    save();
+    renderGastos();
+  });
+  var borrarTimer = null;
+  $("#btn-borrar-gastos").addEventListener("click", function () {
+    var b = $("#btn-borrar-gastos");
+    if (b.getAttribute("data-armado") === "1") {
+      clearTimeout(borrarTimer);
+      b.removeAttribute("data-armado");
+      b.textContent = "Borrar mi hoja de gastos";
+      state.gastos = {}; state.gastosExtra = [];
+      if (state.pctReales) { state.pct = presetMes(tipoObj()); state.pctTocado = false; state.pctReales = false; state.provisionMes = 0; state.realNota = ""; }
+      save();
+      renderGastos();
+      return;
+    }
+    b.setAttribute("data-armado", "1");
+    b.textContent = "Toque otra vez para borrar la hoja";
+    borrarTimer = setTimeout(function () { b.removeAttribute("data-armado"); b.textContent = "Borrar mi hoja de gastos"; }, 5000);
+  });
+  function updateGastos() {
+    var rg = resumenGastos(), base = baseMes();
+    RUBROS.forEach(function (r) {
+      var el = document.getElementById("gsub-" + r.id);
+      if (!el) return;
+      var pr = rg.porRubro[r.id], partes = [];
+      if (pr.mes > 0) partes.push(money(pr.mes) + " al mes");
+      if (pr.grandes > 0) partes.push(money(pr.grandes) + " al año en pagos grandes");
+      el.textContent = partes.join(" · ");
+    });
+    $("#g-tot-mes").textContent = money(rg.mes);
+    $("#g-tot-grandes").textContent = money(rg.grandes);
+    $("#g-tot-grandes-sub").textContent = rg.grandes > 0 ? "al año (" + money(rg.grandes / 12) + " al mes)" : "al año";
+    var est = $("#g-estado");
+    if (rg.hay && base > 0) {
+      var queda = base - rg.mes;
+      est.hidden = false;
+      if (queda >= 0) { est.setAttribute("data-e", "ok"); est.textContent = "De su dinero de cada mes (" + money(base) + "), después de estos gastos le quedan " + money(queda) + " al mes para ahorro, su objetivo y lo que no anotó."; }
+      else { est.setAttribute("data-e", "ojo"); est.textContent = "Estos gastos suman " + money(rg.mes) + " al mes, " + money(-queda) + " más que su dinero de cada mes (" + money(base) + "). En los siguientes pasos le ayudamos a ajustar."; }
+    } else est.hidden = true;
+    $("#p3-saltar").hidden = rg.hay;
+    $("#btn-borrar-gastos").hidden = !rg.hay && !state.gastosExtra.length;
+    $("#btn-ejemplo-gastos").hidden = rg.hay;
+  }
+
+  /* =========================================================
+     Cálculo del plan (lo usan la pantalla y el PDF)
+     ========================================================= */
+  function inflacion() { var v = parseFloat(String(state.inflacion).replace(",", ".")); return isFinite(v) && v >= 0 && v <= 50 ? v : INF_DEFAULT; }
+
+  function calcular() {
+    var base = baseMes(), extra = extraAnio(), seguro = baseSeguro(), t = tipoObj(), o = objetivo();
+    var fuentes = [];
+    state.fuentes.forEach(function (f) {
+      if (montoDe(f) <= 0) return;
+      fuentes.push({ f: f, nombre: nombreFuente(f), tipo: tipoDe(f.tipo), q: freq(f.frecuencia), monto: montoDe(f), mes: anualDe(f) / 12, anio: anualDe(f), destino: destinoDe(f), seguro: esSeguro(f), uso: usoTexto(f) });
+    });
+    var rubros = rubrosVisibles().map(function (r) { var p = state.pct[r.id] || 0; return { it: r, id: r.id, nombre: nombreItem("mes", r), pct: p, mes: base * p / 100, obj: esDelObjetivo("mes", r.id) }; });
+    var sumMes = sumaG("mes");
+    var grupos = GRUPOS.map(function (g) { var p = rubros.filter(function (x) { return x.it.grupo === g.id; }).reduce(function (a, x) { return a + x.pct; }, 0); return { g: g, pct: p, mes: base * p / 100 }; });
+    var fx = extraFuentes();
+    var bolsas = bolsasVisibles().map(function (b) {
+      var anio = fx.reduce(function (a, f) { return a + anualDe(f) * (pctFuente(f)[b.id] || 0) / 100; }, 0);
+      return { it: b, id: b.id, nombre: nombreItem("f", b), anio: anio, pct: extra > 0 ? anio / extra * 100 : 0, obj: esDelObjetivo("f", b.id) };
+    });
+    var repExtra = bolsas.reduce(function (a, b) { return a + b.anio; }, 0);
+    var c = {
+      base: base, extra: extra, seguro: seguro, t: t, o: o, fuentes: fuentes, rubros: rubros, sumMes: sumMes, estMes: estadoG("mes", sumMes),
+      grupos: grupos, basicos: grupos[0].mes, bolsas: bolsas, repExtra: repExtra, faltaExtra: extra - repExtra, gastos: resumenGastos(), inf: inflacion()
+    };
+    c.mesDe = function (id) { for (var i = 0; i < rubros.length; i++) if (rubros[i].id === id) return rubros[i].mes; return 0; };
+    c.anioDe = function (id) { for (var i = 0; i < bolsas.length; i++) if (bolsas[i].id === id) return bolsas[i].anio; return 0; };
+    c.repMes = c.estMes === "listo" ? base : base * sumMes / 100;
+    c.planFuentes = fx.map(function (f) {
+      var P = pctFuente(f);
+      return { nombre: nombreFuente(f), monto: montoDe(f), frec: freq(f.frecuencia).label, uso: usoTexto(f),
+        reparto: bolsasVisibles().filter(function (b) { return (P[b.id] || 0) > 0.001; }).map(function (b) { return { nombre: nombreItem("f", b), pct: P[b.id], monto: montoDe(f) * P[b.id] / 100, anio: anualDe(f) * P[b.id] / 100, it: b }; }) };
+    });
+    c.comp = compararGastos(c);
+    c.cobertura = textoCobertura();
+    c.objetivo = planObjetivo(c);
+    c.emergencia = planEmergencia(c);
+    c.infl = planInflacion(c);
+    c.recos = recomendaciones(c);
+    return c;
+  }
+
+  function compararGastos(c) {
+    var g = c.gastos;
+    if (!g.hay) return null;
+    var prov = Math.max(0, g.grandes - c.anioDe("anuales")) / 12;
+    var filas = [];
+    c.rubros.forEach(function (r) {
+      var pr = g.porRubro[r.id];
+      var real = pr.mes + (g.grandes > 0 ? prov * pr.grandes / g.grandes : 0);
+      if (r.mes < 0.5 && real < 0.5) return;
+      filas.push({ id: r.id, nombre: r.nombre, plan: r.mes, real: real, dif: r.mes - real });
+    });
+    var totPlan = filas.reduce(function (a, x) { return a + x.plan; }, 0), totReal = filas.reduce(function (a, x) { return a + x.real; }, 0);
+    return { filas: filas, totPlan: totPlan, totReal: totReal, prov: prov, queda: c.base - g.mes - prov };
+  }
+
+  function planObjetivo(c) {
+    if (!c.o) return null;
+    var p = { o: c.o, tipo: c.t, titulo: objTitulo() };
+    if (c.t === "alcanzar") return p;
+    p.plazo = state.plazo;
+    if (c.t === "emergencias") {
+      p.metaReco = !parseMonto(state.meta);
+      p.meta = parseMonto(state.meta) || 3 * c.basicos;
+      p.tiene = parseMonto(state.ahorroEmerg);
+      p.aporteMes = c.mesDe("ahorro"); p.aporteExtra = c.anioDe("emergencias");
+    } else if (c.t === "deudas") {
+      p.meta = parseMonto(state.deudaTotal); p.tiene = 0;
+      p.aporteMes = c.mesDe("deudas"); p.aporteExtra = c.anioDe("deudas");
+    } else {
+      p.meta = parseMonto(state.meta); p.tiene = parseMonto(state.metaTiene);
+      p.aporteMes = c.mesDe("meta"); p.aporteExtra = c.anioDe("objetivo");
+    }
+    p.falta = Math.max(0, p.meta - p.tiene);
+    p.necesita = p.falta / p.plazo;
+    p.promedio = p.aporteMes + p.aporteExtra / 12;
+    p.meses = p.promedio > 0.5 ? Math.max(1, Math.ceil(p.falta / p.promedio)) : null;
+    p.faltaMes = Math.max(0, p.necesita - p.promedio);
+    p.estado = p.meta <= 0 ? "sin-meta" : p.falta <= 0 ? "logrado" : (p.meses !== null && p.meses <= p.plazo) ? "a-tiempo" : "tarde";
+    p.avance = p.meta > 0 ? Math.min(1, p.tiene / p.meta) : 0;
+    p.metaInfl = c.t === "meta" && p.meta > 0 && p.plazo >= 6 ? p.meta * Math.pow(1 + c.inf / 100, p.plazo / 12) : 0;
+    p.msg = mensajeObjetivo(p);
+    return p;
+  }
+  function mensajeObjetivo(p) {
+    var deu = p.tipo === "deudas", verbo = deu ? "terminaría de pagar" : "lo lograría";
+    if (p.estado === "sin-meta") return { e: "ojo", txt: (deu ? "Escriba en el paso 2 cuánto debe en total" : "Escriba en el paso 2 cuánto necesita") + " para calcular en cuánto tiempo lo logra." };
+    if (p.estado === "logrado") return { e: "ok", txt: "¡Ya tiene lo necesario para su objetivo!" };
+    if (p.estado === "a-tiempo") return { e: "ok", txt: "Va bien. Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", hacia " + fechaEn(p.meses) + ", dentro del plazo que eligió." };
+    if (p.meses === null) return { e: "ojo", txt: "Su plan todavía no aparta dinero para este objetivo. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.necesita) + " al mes. Súbale a los rubros marcados como «Su objetivo» en los pasos 4 y 5." };
+    return { e: "ojo", txt: "Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", más tiempo del que quería. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.faltaMes) + " más al mes." };
+  }
+  function planEmergencia(c) {
+    if (c.t === "emergencias" || c.basicos <= 0) return null;
+    var e = { basicos: c.basicos, meta3: 3 * c.basicos, meta6: 6 * c.basicos, tiene: parseMonto(state.ahorroEmerg), aporte: c.mesDe("ahorro") + c.anioDe("emergencias") / 12 };
+    e.falta3 = Math.max(0, e.meta3 - e.tiene);
+    e.meses = e.aporte > 0.5 ? Math.max(1, Math.ceil(e.falta3 / e.aporte)) : null;
+    if (e.falta3 <= 0) e.msg = { e: "ok", txt: "Ya tiene al menos 3 meses de gastos indispensables. Siga hasta llegar a 6 meses (" + money(e.meta6) + ")." };
+    else if (e.meses) e.msg = { e: e.meses <= 24 ? "ok" : "ojo", txt: "Con lo que aparta, juntaría 3 meses de gastos indispensables en " + fmtMeses(e.meses) + ", hacia " + fechaEn(e.meses) + "." };
+    else e.msg = { e: "ojo", txt: "Su plan no aparta dinero para emergencias. Le sugerimos destinar al menos 5% de su ingreso de cada mes o una parte de su dinero extra." };
+    return e;
+  }
+  function planInflacion(c) {
+    var r = c.inf / 100, f1 = 1 + r, f5 = Math.pow(1 + r, 5);
+    var filas = [];
+    if (c.base > 0) filas.push({ nombre: "Sus gastos de cada mes", hoy: c.repMes, uno: c.repMes * f1, cinco: c.repMes * f5 });
+    var grandes = c.gastos.items.filter(function (x) { return x.grande; });
+    grandes.forEach(function (x) { filas.push({ nombre: x.label + " (" + fGasto(x.frec).label.toLowerCase() + ")", hoy: x.monto, uno: x.monto * f1, cinco: x.monto * f5 }); });
+    if (c.objetivo && c.objetivo.tipo === "meta" && c.objetivo.meta > 0) filas.push({ nombre: "Su objetivo: " + c.objetivo.titulo, hoy: c.objetivo.meta, uno: c.objetivo.meta * f1, cinco: c.objetivo.meta * f5 });
+    var consejos = [];
+    consejos.push("Con una inflación de " + fmtPct(c.inf) + " al año, lo que hoy cuesta $1,000 costará unos " + money(1000 * f1) + " dentro de un año y unos " + money(1000 * f5) + " en 5 años.");
+    if (c.base > 0) consejos.push("Para mantener su nivel de vida, el próximo año necesitará unos " + money(c.repMes * f1) + " al mes en lugar de " + money(c.repMes) + ". Muchas pensiones se ajustan una vez al año con la inflación: cuando cambie la suya, actualice este plan.");
+    if (c.gastos.grandes > 0) consejos.push("Sus pagos grandes del año también suben: para el próximo año calcule unos " + money(c.gastos.grandes * f1) + " en lugar de " + money(c.gastos.grandes) + ". En muchos estados y municipios hay descuento por pagar el predial y la tenencia o refrendo en los primeros meses del año.");
+    else consejos.push("El predial, la tenencia o refrendo y los seguros suben cada año. En muchos estados y municipios hay descuento por pagarlos en los primeros meses del año.");
+    consejos.push("Al renovar el seguro del coche o de gastos médicos, compare precios con otras aseguradoras: suelen subir cada año.");
+    consejos.push("El dinero guardado en efectivo pierde valor con la inflación. Para su ahorro, busque una opción segura que pague intereses por arriba de la inflación, como Cetes Directo o una cuenta de ahorro con rendimiento.");
+    return { tasa: c.inf, filas: filas, consejos: consejos };
+  }
+
+  function paresObjetivo(p) {
+    var r = [];
+    if (p.tipo === "deudas") {
+      r.push(["Deuda total", money(p.meta)]);
+      r.push(["Plazo que eligió", fmtMeses(p.plazo)]);
+      r.push(["Necesita abonar al mes", money(p.necesita)]);
+      r.push(["Su plan abona al mes", money(p.aporteMes)]);
+      if (p.aporteExtra > 0) r.push(["Su dinero extra abona al año", money(p.aporteExtra)]);
+      r.push(["Tiempo estimado, sin intereses", p.meses ? fmtMeses(p.meses) : "Sin fecha"]);
+    } else {
+      r.push([p.tipo === "emergencias" && p.metaReco ? "Meta recomendada (3 meses de gastos indispensables)" : "Meta", money(p.meta)]);
+      if (p.metaInfl) r.push(["Con inflación, en " + fmtMeses(p.plazo) + " podría costar", money(p.metaInfl)]);
+      r.push(["Ya tiene", money(p.tiene)]);
+      r.push(["Le falta", money(p.falta)]);
+      r.push(["Plazo que eligió", fmtMeses(p.plazo)]);
+      r.push(["Necesita apartar al mes", money(p.necesita)]);
+      r.push(["Su plan aparta al mes", money(p.aporteMes)]);
+      if (p.aporteExtra > 0) r.push(["Su dinero extra aporta al año", money(p.aporteExtra)]);
+      r.push(["Tiempo estimado", p.falta <= 0 ? "Ya lo logró" : p.meses ? fmtMeses(p.meses) : "Sin fecha"]);
+    }
+    return r;
+  }
+  function paresEmergencia(e) {
+    return [["Gastos indispensables al mes", money(e.basicos)], ["Meta mínima (3 meses)", money(e.meta3)], ["Meta ideal (6 meses)", money(e.meta6)],
+      ["Ya tiene", money(e.tiene)], ["Aparta en promedio al mes", money(e.aporte)], ["Tiempo para la meta mínima", e.falta3 <= 0 ? "Ya la alcanzó" : e.meses ? fmtMeses(e.meses) : "Sin fecha"]];
+  }
+  function paresGastos(c) {
+    var g = c.gastos, k = c.comp;
+    var r = [["Gastos de cada mes", money(g.mes)], ["Pagos grandes del año", money(g.grandes) + (g.grandes > 0 ? " (" + money(g.grandes / 12) + " al mes)" : "")]];
+    if (k.prov > 0.5) r.push(["Debe apartar cada mes para pagos grandes", money(k.prov)]);
+    r.push(["Su dinero de cada mes", money(c.base)]);
+    r.push([k.queda >= 0 ? "Le queda al mes después de sus gastos" : "Le falta al mes para cubrir sus gastos", money(Math.abs(k.queda))]);
+    return r;
+  }
+
+  function recomendaciones(c) {
+    var grupos = [];
+    function rub(id) { for (var i = 0; i < c.rubros.length; i++) if (c.rubros[i].id === id) return c.rubros[i]; return { pct: 0, mes: 0 }; }
+    var g1 = [];
+    var diarios = c.fuentes.filter(function (x) { return x.destino === "diario"; });
+    if (c.base > 0) g1.push("Su dinero para el día a día es de " + money(c.base) + " al mes (" + lista(diarios.map(function (x) { return x.nombre; })) + "). Úselo para sus gastos fijos y deje el dinero extra para ahorro, su objetivo y los pagos grandes.");
+    else g1.push("No tiene ingresos que lleguen cada mes. Revise el paso 1.");
+    if (c.estMes === "falta") g1.push("Le quedan " + money(c.base - c.repMes) + " al mes sin asignar. Le sugerimos sumarlos a su ahorro.");
+    if (c.estMes === "pasado") g1.push("Sus gastos planeados superan su ingreso por " + money(c.repMes - c.base) + " al mes. Baje algunos rubros hasta llegar a 100%.");
+    var variables = diarios.filter(function (x) { return !x.seguro; });
+    if (variables.length && c.basicos > c.seguro + 0.5) g1.push("Sus gastos indispensables (" + money(c.basicos) + " al mes) son mayores que su ingreso seguro (" + money(c.seguro) + "). Si un mes no llega " + lista(variables.map(function (x) { return x.nombre; }), "o") + ", le faltarían hasta " + money(c.basicos - c.seguro) + ". Su fondo para emergencias le ayudará en esos meses.");
+    else if (variables.length) g1.push("Su ingreso seguro (" + money(c.seguro) + " al mes) alcanza para lo indispensable. Lo que recibe de " + lista(variables.map(function (x) { return x.nombre; })) + " puede variar, así que úselo de preferencia para ahorro y gustos.");
+    var comida = rub("comida");
+    if (comida.mes > 0) g1.push("Para comida y despensa tiene " + money(comida.mes * 12 / 52) + " por semana. Llevar ese dinero aparte ayuda a no pasarse.");
+    if (rub("salud").pct < 10) g1.push("Su gasto en salud es menor a 10%. Con la edad los gastos médicos suelen subir; si le es posible, aparte 10% o más.");
+    if (rub("vivienda").pct > 35) g1.push("La vivienda se lleva más de 35% de su ingreso y deja poco margen para lo demás.");
+    if (rub("deudas").pct > 20) g1.push("Más de 20% de su ingreso se va en deudas. Conviene liquidar primero la que cobra más intereses.");
+    g1.push("Cuando reciba su pensión o su ingreso del mes, pague primero lo fijo (renta, luz, agua, deudas) y aparte su ahorro. Lo que queda es para el resto del mes.");
+    grupos.push({ titulo: "Su dinero de cada mes", items: g1 });
+
+    if (c.comp) {
+      var gg = [], k = c.comp;
+      if (k.queda < 0) gg.push("Hoy gasta " + money(-k.queda) + " al mes más de lo que recibe cada mes. Revise los rubros donde gasta más de lo planeado.");
+      k.filas.filter(function (x) { return x.dif < -50; }).sort(function (a, b) { return a.dif - b.dif; }).slice(0, 3).forEach(function (x) {
+        gg.push(x.nombre + ": hoy gasta " + money(x.real) + " al mes y su plan dice " + money(x.plan) + ". Intente bajar " + money(-x.dif) + " al mes.");
+      });
+      var luz = state.gastos.luz;
+      if (luz && parseMonto(luz.monto) > 0 && luz.frec === "bimestral") gg.push("El recibo de luz llega cada dos meses: aparte " + money(parseMonto(luz.monto) / 2) + " cada mes para pagarlo sin apuros.");
+      if (c.cobertura) gg.push(c.cobertura.txt);
+      if (gg.length) grupos.push({ titulo: "Sus gastos reales", items: gg });
+    }
+
+    var g2 = [];
+    if (c.extra > 0) {
+      g2.push("Tiene " + money(c.extra) + " al año de dinero extra. En cuanto llegue cada pago, repártalo según su plan, antes de que se vaya en gastos pequeños.");
+      g2.push("Guarde el dinero de ahorro en una cuenta distinta de la que usa para gastar, para no tocarlo por accidente.");
+    }
+    c.fuentes.forEach(function (x) {
+      if (x.f.frecuencia === "bimestral" && x.destino === "diario") g2.push(x.nombre + ": como llega cada dos meses, cuando lo reciba guarde la mitad (" + money(x.monto / 2) + ") para el segundo mes.");
+      if (x.f.tipo === "aguinaldo") g2.push(x.nombre + ": decida antes de recibirlo a qué va cada parte. Reserve lo de enero, como el predial y la tenencia o refrendo, que suelen tener descuento si se pagan a inicio de año.");
+    });
+    if (!c.extra) g2.push("Si recibe aguinaldo, pagos cada dos meses o algún dinero de vez en cuando, agréguelo en el paso 1 para planear en qué usarlo.");
+    grupos.push({ titulo: "Su dinero extra", items: g2 });
+
+    var g3 = [], p = c.objetivo;
+    if (!p) g3.push("No eligió un objetivo. Tener uno, aunque sea pequeño, ayuda a ahorrar con más ganas.");
+    else if (p.tipo === "alcanzar") {
+      g3.push("Anote sus gastos durante un mes en la hoja de seguimiento del reporte. Así verá en qué se va el dinero.");
+      g3.push("Use efectivo o tarjeta de débito, no de crédito, para la comida y el transporte. Así no gasta más de lo que tiene.");
+      g3.push("Revise servicios que casi no usa: televisión de paga, aplicaciones o planes de celular más caros de lo necesario.");
+    } else {
+      g3.push(p.msg.txt);
+      if (p.metaInfl) g3.push("Tome en cuenta la inflación: lo que hoy cuesta " + money(p.meta) + " podría costar " + money(p.metaInfl) + " en " + fmtMeses(p.plazo) + ".");
+      if (p.tipo === "deudas") {
+        g3.push("Pague siempre al menos el mínimo de todas sus deudas y abone lo demás a la que cobra más interés.");
+        g3.push("Evite pedir préstamos nuevos para pagar otros, y desconfíe de ofertas de préstamos rápidos por teléfono o redes sociales.");
+        g3.push("El cálculo no incluye intereses; con intereses tardará un poco más.");
+      }
+      if (p.tipo === "emergencias") g3.push("Use este fondo solo para emergencias reales: una enfermedad, una reparación urgente o un mes sin ingreso. Si lo usa, vuelva a llenarlo.");
+      if (p.o.id === "salud") g3.push("Si tiene derecho a IMSS o ISSSTE, aproveche sus consultas y medicinas, y use este fondo para lo que no le cubren.");
+      if (p.o.id === "casa") g3.push("Pida al menos dos presupuestos antes de contratar un arreglo, y pague por avance, no todo por adelantado.");
+      if (p.o.id === "viaje") g3.push("Pregunte por descuentos para personas adultas mayores en autobuses, aerolíneas y hoteles.");
+      if (p.o.id === "familia") g3.push("Antes de prestar o regalar dinero, asegúrese de tener cubiertos sus gastos y su fondo para emergencias.");
+      if (p.o.id === "compra") g3.push("Compare precios y evite comprar a meses con intereses. Si ya juntó el dinero, pagar de contado suele salir más barato.");
+    }
+    grupos.push({ titulo: "Su objetivo", items: g3 });
+
+    grupos.push({ titulo: "Cuide su dinero", items: [
+      "Si tiene 60 años o más, tramite su credencial INAPAM. En muchos lugares da descuentos en transporte, medicinas, predial y agua.",
+      "Nunca dé su NIP, contraseñas o códigos por teléfono o mensaje, aunque digan llamar del banco, del IMSS o del gobierno. Cuelgue y llame usted al número oficial.",
+      "Revise su plan cada mes y ajústelo si cambia algo, como un aumento en la pensión o un gasto nuevo."
+    ] });
+    return grupos;
+  }
+
+  /* =========================================================
+     Paso 6: resultados en pantalla
+     ========================================================= */
+  function filaRes(o) {
+    var li = document.createElement("li");
+    li.className = "res-item" + (o.clase ? " " + o.clase : "");
+    li.style.setProperty("--c", o.color || "transparent");
+    var sw = document.createElement("span"); sw.className = "sw"; sw.setAttribute("aria-hidden", "true");
+    var main = document.createElement("div");
+    var n = document.createElement("span"); n.className = "ri-nombre"; n.textContent = o.nombre;
+    if (o.pill) { var pl = document.createElement("span"); pl.className = "pill"; pl.textContent = "Su objetivo"; n.appendChild(document.createTextNode(" ")); n.appendChild(pl); }
+    main.appendChild(n);
+    if (o.sub) { var sub = document.createElement("span"); sub.className = "ri-sub"; sub.textContent = o.sub; main.appendChild(sub); }
+    var m = document.createElement("span"); m.className = "ri-monto"; m.textContent = money(o.monto);
+    var sm = document.createElement("small"); sm.textContent = o.unidad; m.appendChild(sm);
+    li.appendChild(sw); li.appendChild(main); li.appendChild(m);
+    return li;
+  }
+  function kvList(pares) {
+    var dl = document.createElement("dl"); dl.className = "kv";
+    pares.forEach(function (p) { var dt = document.createElement("dt"); dt.textContent = p[0]; var dd = document.createElement("dd"); dd.textContent = p[1]; dl.appendChild(dt); dl.appendChild(dd); });
+    return dl;
+  }
+  function estadoEl(m) { var d = document.createElement("p"); d.className = "estado"; d.setAttribute("data-e", m.e); d.textContent = m.txt; return d; }
+  function pintarStack(el, items, sum) {
+    el.textContent = "";
+    var den = Math.max(sum, 100);
+    items.forEach(function (x) { if (x.pct <= 0.001) return; var s = document.createElement("span"); s.style.width = (x.pct / den * 100) + "%"; s.style.background = "var(" + x.it.color + ")"; el.appendChild(s); });
+    if (sum < 99.995) { var v = document.createElement("span"); v.className = "vacio"; v.style.width = (100 - sum) + "%"; el.appendChild(v); }
+  }
+  function celda(tr, txt, clase) { var td = document.createElement("td"); td.textContent = txt; if (clase) td.className = clase; tr.appendChild(td); return td; }
+
+  function renderResultados() {
+    var c = calcular();
+    var meta = [];
+    if (state.nombre.trim()) meta.push("Preparado para " + state.nombre.trim());
+    meta.push(fechaLarga());
+    if (c.objetivo) meta.push("Objetivo: " + c.objetivo.titulo);
+    $("#res-meta").textContent = meta.join(" · ");
+    $("#res-mes").textContent = money(c.base);
+    $("#res-extra").textContent = money(c.extra);
+    $("#res-anio").textContent = money(c.base * 12 + c.extra);
+
+    $("#rs-mes-sub").textContent = "Con su dinero para el día a día de " + money(c.base) + " al mes.";
+    pintarStack($("#res-stack"), c.rubros, c.estMes === "listo" ? 100 : c.sumMes);
+    var gr = $("#res-grupos"); gr.textContent = "";
+    c.grupos.forEach(function (g) {
+      var d = document.createElement("div");
+      var a = document.createElement("span"); a.textContent = g.g.titulo;
+      var b = document.createElement("strong"); b.textContent = fmtPct(g.pct);
+      var s = document.createElement("small"); s.textContent = money(g.mes) + " al mes";
+      d.appendChild(a); d.appendChild(b); d.appendChild(s); gr.appendChild(d);
+    });
+    var realDe = {};
+    if (c.comp) c.comp.filas.forEach(function (x) { realDe[x.id] = x.real; });
+    var ul = $("#res-lista"); ul.textContent = "";
+    c.rubros.forEach(function (r) {
+      if (r.pct <= 0.001) return;
+      var sub = fmtPct(r.pct) + " · " + money(r.mes * 12 / 52) + " por semana · " + money(r.mes * 12) + " al año";
+      if (realDe[r.id] > 0.5) sub += " · hoy gasta " + money(realDe[r.id]);
+      ul.appendChild(filaRes({ nombre: r.nombre, pill: r.obj, sub: sub, monto: r.mes, unidad: "al mes", color: "var(" + r.it.color + ")" }));
+    });
+    if (c.estMes === "falta") ul.appendChild(filaRes({ nombre: "Sin asignar", sub: fmtPct(100 - c.sumMes), monto: c.base - c.repMes, unidad: "al mes", clase: "vacio" }));
+    ul.appendChild(filaRes({ nombre: "Total repartido", sub: (c.estMes === "listo" ? "100%" : fmtPct(c.sumMes)) + " · " + money(c.repMes * 12) + " al año", monto: c.repMes, unidad: "al mes", clase: "res-total" }));
+
+    // Gastos reales
+    $("#sec-gastos").hidden = !c.comp;
+    if (c.comp) {
+      var rgx = $("#res-gastos"); rgx.textContent = "";
+      rgx.appendChild(kvList(paresGastos(c)));
+      rgx.appendChild(estadoEl(c.comp.queda >= 0
+        ? { e: "ok", txt: "Después de sus gastos de hoy le quedan " + money(c.comp.queda) + " al mes para ahorro y su objetivo." }
+        : { e: "ojo", txt: "Hoy gasta " + money(-c.comp.queda) + " al mes más de lo que recibe cada mes. Vea abajo en qué rubros conviene recortar." }));
+      if (c.cobertura) rgx.appendChild(estadoEl(c.cobertura));
+      var tb = $("#comp-body"); tb.textContent = "";
+      c.comp.filas.forEach(function (x) {
+        var tr = document.createElement("tr");
+        celda(tr, x.nombre); celda(tr, money(x.plan), "num"); celda(tr, money(x.real), "num");
+        celda(tr, moneySigno(x.dif), "num " + (x.dif >= 0 ? "mas" : "menos"));
+        tb.appendChild(tr);
+      });
+      var tt = document.createElement("tr"); tt.className = "total";
+      celda(tt, "Total"); celda(tt, money(c.comp.totPlan), "num"); celda(tt, money(c.comp.totReal), "num");
+      celda(tt, moneySigno(c.comp.totPlan - c.comp.totReal), "num " + (c.comp.totPlan - c.comp.totReal >= 0 ? "mas" : "menos"));
+      tb.appendChild(tt);
+    }
+
+    // Extra
+    $("#sec-extra").hidden = c.extra <= 0;
+    if (c.extra > 0) {
+      $("#rs-extra-sub").textContent = "Su dinero extra suma " + money(c.extra) + " al año (" + lista(c.planFuentes.map(function (x) { return x.nombre; })) + ").";
+      pintarStack($("#res-stack-extra"), c.bolsas, Math.min(100, c.repExtra / c.extra * 100) > 99.99 ? 100 : c.repExtra / c.extra * 100);
+      var ue = $("#res-extra-lista"); ue.textContent = "";
+      c.bolsas.forEach(function (b) {
+        if (b.pct <= 0.001) return;
+        ue.appendChild(filaRes({ nombre: b.nombre, pill: b.obj, sub: fmtPct(b.pct) + " · " + money(b.anio / 12) + " al mes en promedio", monto: b.anio, unidad: "al año", color: "var(" + b.it.color + ")" }));
+      });
+      if (c.faltaExtra > 1) ue.appendChild(filaRes({ nombre: "Sin asignar", monto: c.faltaExtra, unidad: "al año", clase: "vacio" }));
+      var pf = $("#res-plan-fuentes"); pf.textContent = "";
+      c.planFuentes.forEach(function (x) {
+        var card = document.createElement("div"); card.className = "plan-fuente";
+        var tt2 = document.createElement("p"); tt2.className = "pf-t"; tt2.textContent = "Cuando reciba: " + x.nombre;
+        var sm = document.createElement("small"); sm.textContent = money(x.monto) + " · " + x.frec.toLowerCase(); tt2.appendChild(sm);
+        var l = document.createElement("ul");
+        x.reparto.forEach(function (r) { var li = document.createElement("li"); var a = document.createElement("span"); a.textContent = r.nombre; var b = document.createElement("strong"); b.textContent = money(r.monto); li.appendChild(a); li.appendChild(b); l.appendChild(li); });
+        card.appendChild(tt2); card.appendChild(l); pf.appendChild(card);
+      });
+    }
+
+    // Objetivo
+    var p = c.objetivo, ob = $("#res-obj");
+    $("#sec-obj").hidden = !p;
+    ob.textContent = "";
+    if (p) {
+      var h = document.createElement("h4"); h.textContent = p.titulo; ob.appendChild(h);
+      if (p.tipo === "alcanzar") {
+        var tx = document.createElement("p");
+        tx.textContent = "Su objetivo es que le alcance el dinero cada mes. Su plan reparte " + money(c.repMes) + " de " + money(c.base) + " al mes. Siga las recomendaciones de abajo y use la hoja de seguimiento del reporte para anotar sus gastos.";
+        ob.appendChild(tx);
+      } else {
+        if (p.estado !== "sin-meta") {
+          ob.appendChild(kvList(paresObjetivo(p)));
+          if (p.tipo !== "deudas" && p.tiene > 0) {
+            var pr = document.createElement("div"); pr.className = "progreso";
+            var bar = document.createElement("div"); bar.className = "progreso-barra";
+            var fill = document.createElement("div"); fill.style.width = (p.avance * 100) + "%"; bar.appendChild(fill);
+            var pt = document.createElement("p"); pt.textContent = "Lleva " + Math.round(p.avance * 100) + "% de su meta.";
+            pr.appendChild(bar); pr.appendChild(pt); ob.appendChild(pr);
+          }
+        }
+        ob.appendChild(estadoEl(p.msg));
+      }
+    }
+
+    // Emergencias
+    var e = c.emergencia, em = $("#res-emerg");
+    $("#sec-emerg").hidden = !e;
+    em.textContent = "";
+    if (e) { em.appendChild(kvList(paresEmergencia(e))); em.appendChild(estadoEl(e.msg)); }
+
+    // Inflación
+    renderInflacion(c);
+
+    // Recomendaciones
+    var rc = $("#res-recos"); rc.textContent = "";
+    c.recos.forEach(function (g) {
+      if (!g.items.length) return;
+      var box = document.createElement("div"); box.className = "reco";
+      var h4 = document.createElement("h4"); h4.textContent = g.titulo;
+      var l = document.createElement("ul");
+      g.items.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; l.appendChild(li); });
+      box.appendChild(h4); box.appendChild(l); rc.appendChild(box);
+    });
+    $("#pdf-msg").textContent = "";
+    $("#pdf-msg").removeAttribute("data-tipo");
+  }
+
+  function renderInflacion(c) {
+    var inp = $("#inflacion");
+    if (document.activeElement !== inp) inp.value = numPct(c.inf);
+    var tb = $("#infl-body"); tb.textContent = "";
+    c.infl.filas.forEach(function (x) {
+      var tr = document.createElement("tr");
+      celda(tr, x.nombre); celda(tr, money(x.hoy), "num"); celda(tr, money(x.uno), "num"); celda(tr, money(x.cinco), "num");
+      tb.appendChild(tr);
+    });
+    var ul = $("#infl-consejos"); ul.textContent = "";
+    c.infl.consejos.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+  }
+  $("#inflacion").addEventListener("input", function (e) { state.inflacion = e.target.value; save(); renderResultados(); });
+  $("#inflacion").addEventListener("focusout", function (e) { e.target.value = numPct(inflacion()); });
+
+  /* =========================================================
+     Navegación
+     ========================================================= */
+  function updateStepper() {
+    var hay = totalAnual() > 0, hayExtra = extraAnio() > 0;
+    $$(".paso").forEach(function (b) {
+      var n = Number(b.getAttribute("data-ir"));
+      if (n === state.paso) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+      b.classList.toggle("hecho", n < state.paso);
+      b.disabled = (n > 1 && !hay) || (n === 5 && !hayExtra);
+    });
+  }
+  function goTo(n, conFoco) {
+    var bloqueado = false;
+    if (n > 1 && totalAnual() <= 0) {
+      if (conFoco) { $("#err-ingreso").hidden = false; var primero = $('#fuentes [data-campo="monto"]'); if (primero) primero.focus(); }
+      n = 1; bloqueado = true;
+    }
+    if (n === 5 && extraAnio() <= 0) n = state.paso === 6 ? 4 : 6;
+    state.paso = n;
+    $$("[data-panel]").forEach(function (p) { p.hidden = Number(p.getAttribute("data-panel")) !== n; });
+    if (n === 1) updateTotales();
+    if (n === 2) renderObjetivo();
+    if (n === 3) renderGastos();
+    if (n === 4) {
+      $("#p4-base").textContent = money(baseMes());
+      $("#p4-sin-base").hidden = baseMes() > 0;
+      var rg = resumenGastos();
+      if (rg.hay && (!state.pctTocado || state.pctAuto)) aplicarGastosReales();
+      $("#btn-usar-reales").hidden = !rg.hay;
+      mostrarNotaReal();
+      renderRepartoMes();
+    }
+    if (n === 5) { $("#p5-base").textContent = money(extraAnio()); renderExtras(); }
+    if (n === 6) renderResultados();
+    save();
+    updateStepper();
+    if (conFoco && !bloqueado) {
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+      var h = document.getElementById("h-paso" + n);
+      if (h) { try { h.focus({ preventScroll: true }); } catch (e) { h.focus(); } }
+    }
+  }
+
+  $$(".paso").forEach(function (b) { b.addEventListener("click", function () { goTo(Number(b.getAttribute("data-ir")), true); }); });
+  $("#p1-sig").addEventListener("click", function () { goTo(2, true); });
+  $("#p2-ant").addEventListener("click", function () { goTo(1, true); });
+  $("#p2-sig").addEventListener("click", function () { goTo(3, true); });
+  $("#p3-ant").addEventListener("click", function () { goTo(2, true); });
+  $("#p3-saltar").addEventListener("click", function () { goTo(4, true); });
+  $("#p3-sig").addEventListener("click", function () { goTo(4, true); });
+  $("#p4-ant").addEventListener("click", function () { goTo(3, true); });
+  $("#p4-sig").addEventListener("click", function () { goTo(extraAnio() > 0 ? 5 : 6, true); });
+  $("#p5-ant").addEventListener("click", function () { goTo(4, true); });
+  $("#p5-sig").addEventListener("click", function () { goTo(6, true); });
+  $("#p6-ant").addEventListener("click", function () { goTo(extraAnio() > 0 ? 5 : 4, true); });
+
+  var armadoTimer = null;
+  var btnReiniciar = $("#btn-reiniciar");
+  btnReiniciar.addEventListener("click", function () {
+    if (btnReiniciar.getAttribute("data-armado") === "1") {
+      clearTimeout(armadoTimer);
+      btnReiniciar.removeAttribute("data-armado");
+      btnReiniciar.textContent = "Empezar de nuevo";
+      state = defaults();
+      save();
+      renderFuentes();
+      goTo(1, true);
+      return;
+    }
+    btnReiniciar.setAttribute("data-armado", "1");
+    btnReiniciar.textContent = "Toque otra vez para borrar todo";
+    armadoTimer = setTimeout(function () { btnReiniciar.removeAttribute("data-armado"); btnReiniciar.textContent = "Empezar de nuevo"; }, 5000);
+  });
+
+  /* =========================================================
+     Reporte PDF
+     ========================================================= */
+  function hex(h) { h = h.replace("#", ""); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+  function slug(s) { return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); }
+
+  function buildPdf() {
+    var c = calcular();
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({ unit: "pt", format: "letter" });
+    doc.setLineHeightFactor(1.3);
+    var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+    var M = 50, CW = W - 2 * M, PIE = 64;
+    var INK = [27, 42, 36], SOFT = [81, 98, 91], ACC = [30, 122, 89], LINE = [220, 230, 225], SOFTBG = [228, 244, 237];
+    var ORO = [138, 93, 0], OROBG = [255, 244, 217], BAD = [163, 50, 31], WARN = [138, 79, 0], WARNBG = [255, 245, 222];
+    var nombre = state.nombre.trim();
+    var y = M, nsec = 1;
+
+    function t(s) {
+      return String(s).replace(/[  ]/g, " ").replace(/[−–—]/g, "-").replace(/…/g, "...")
+        .replace(/[“”«»]/g, '"').replace(/[‘’]/g, "'").replace(/→/g, "->");
+    }
+    function font(style, size, color) { doc.setFont("helvetica", style); doc.setFontSize(size); doc.setTextColor(color[0], color[1], color[2]); }
+    function lh(size) { return size * 1.3; }
+    function nuevaPagina() { doc.addPage(); y = M + 4; }
+    function ensure(h) { if (y + h > H - PIE) nuevaPagina(); }
+    function hline(color, w) { var cl = color || LINE; doc.setDrawColor(cl[0], cl[1], cl[2]); doc.setLineWidth(w || 0.7); doc.line(M, y, W - M, y); }
+    function parrafo(txt, size, color, style, indent) {
+      size = size || 11; indent = indent || 0;
+      font(style || "normal", size, color || INK);
+      doc.splitTextToSize(t(txt), CW - indent).forEach(function (l) { ensure(lh(size)); doc.text(l, M + indent, y); y += lh(size); });
+    }
+    function seccion(titulo, intro, reserva) {
+      ensure(reserva || 130);
+      y += 12;
+      font("bold", 16, ACC);
+      doc.text(t(nsec++ + ". " + titulo), M, y);
+      y += 9; hline(ACC, 1.4); y += 22;
+      if (intro) { parrafo(intro, 11, SOFT); y += 8; }
+    }
+    function subtitulo(txt, color) { ensure(70); y += 6; font("bold", 12.5, color || INK); doc.text(t(txt), M, y); y += 18; }
+    function vineta(txt) {
+      font("normal", 11, INK);
+      var ls = doc.splitTextToSize(t(txt), CW - 16);
+      ensure(lh(11) * Math.min(ls.length, 2));
+      doc.setFillColor(ACC[0], ACC[1], ACC[2]);
+      doc.circle(M + 4, y - 3.8, 2.4, "F");
+      ls.forEach(function (l, i) { if (i > 0) ensure(lh(11)); doc.text(l, M + 16, y); y += lh(11); });
+      y += 5;
+    }
+    function aviso(m) {
+      var bg = m.e === "ok" ? SOFTBG : WARNBG, fg = m.e === "ok" ? ACC : WARN;
+      font("bold", 11, fg);
+      var ls = doc.splitTextToSize(t(m.txt), CW - 28);
+      var h = ls.length * lh(11) + 18;
+      ensure(h + 6);
+      doc.setFillColor(bg[0], bg[1], bg[2]);
+      doc.roundedRect(M, y, CW, h, 6, 6, "F");
+      font("bold", 11, fg);
+      doc.text(ls, M + 14, y + 20);
+      y += h + 14;
+    }
+    function barra(items, total) {
+      ensure(44);
+      var x = M, den = Math.max(total, 100);
+      items.forEach(function (it) {
+        if (it.pct <= 0.001) return;
+        var w = CW * it.pct / den, cl = hex(it.it.pdf);
+        doc.setFillColor(cl[0], cl[1], cl[2]); doc.rect(x, y, w, 16, "F"); x += w;
+      });
+      if (total < 99.995) { doc.setFillColor(LINE[0], LINE[1], LINE[2]); doc.rect(x, y, CW * (100 - total) / 100, 16, "F"); }
+      y += 16 + 24;
+    }
+    function tabla(cols, filas, opt) {
+      opt = opt || {};
+      var gap = opt.gap || 17;
+      function encabezado() {
+        font("bold", 8.5, SOFT);
+        cols.forEach(function (col) { doc.text(t(col.t.toUpperCase()), col.x, y, { align: col.a || "left" }); });
+        y += 7; hline(); y += gap;
+      }
+      ensure(70);
+      encabezado();
+      filas.forEach(function (f) {
+        var size = f.size || 11, off = f.sw ? 15 : 0, w0 = cols[0].w - off;
+        font(f.bold ? "bold" : "normal", size, f.color || INK);
+        var l0 = doc.splitTextToSize(t(f.c[0]), w0), ls = [];
+        if (f.sub) { font("normal", 9, SOFT); ls = doc.splitTextToSize(t(f.sub), w0); }
+        var h = (l0.length - 1) * lh(size) + (ls.length ? ls.length * lh(9) + 1 : 0);
+        if (y + h + 10 > H - PIE) { nuevaPagina(); encabezado(); }
+        var y0 = y;
+        if (f.sw) { doc.setFillColor(f.sw[0], f.sw[1], f.sw[2]); doc.rect(cols[0].x, y0 - 8.5, 9, 9, "F"); }
+        font(f.bold ? "bold" : "normal", size, f.color || INK);
+        doc.text(l0, cols[0].x + off, y0);
+        for (var i = 1; i < cols.length; i++) {
+          if (f.c[i] === undefined || f.c[i] === "") continue;
+          var col = (f.colores && f.colores[i]) || f.color || INK;
+          font(f.bold || cols[i].b ? "bold" : "normal", size, col);
+          doc.text(t(f.c[i]), cols[i].x, y0, { align: cols[i].a || "left" });
+        }
+        if (ls.length) { font("normal", 9, SOFT); doc.text(ls, cols[0].x + off, y0 + (l0.length - 1) * lh(size) + lh(9) + 1); }
+        y = y0 + h + 9;
+        hline(LINE, 0.7);
+        y += gap;
+      });
+    }
+    function tablaKV(pares) { tabla([{ t: "Concepto", x: M, w: 340 }, { t: "Cantidad", x: W - M, a: "right", b: true }], pares.map(function (p) { return { c: [p[0], p[1]] }; })); }
+    function signo(n) { var v = Math.round(n); return v === 0 ? "$0" : (v > 0 ? "+" : "-") + money(Math.abs(v)); }
+
+    /* Encabezado */
+    doc.setFillColor(ACC[0], ACC[1], ACC[2]);
+    doc.rect(0, 0, W, 10, "F");
+    y = M + 12;
+    font("bold", 26, INK);
+    doc.text("Mi plan de dinero", M, y);
+    y += 24;
+    var meta = [];
+    if (nombre) meta.push("Preparado para: " + nombre);
+    meta.push("Fecha: " + fechaLarga());
+    parrafo(meta.join("   ·   "), 11.5, SOFT);
+    if (c.objetivo) parrafo("Objetivo principal: " + c.objetivo.titulo, 11.5, ACC, "bold");
+    y += 10;
+    var cajas = [["Para cada mes", money(c.base), ACC, SOFTBG], ["Dinero extra al año", money(c.extra), ORO, OROBG], ["Total al año", money(c.base * 12 + c.extra), INK, [240, 244, 242]]];
+    var bw = (CW - 20) / 3, bh = 60;
+    cajas.forEach(function (b, i) {
+      var x = M + i * (bw + 10);
+      doc.setFillColor(b[3][0], b[3][1], b[3][2]); doc.roundedRect(x, y, bw, bh, 6, 6, "F");
+      font("normal", 9.5, SOFT); doc.text(t(b[0]), x + 12, y + 20);
+      font("bold", 18, b[2]); doc.text(t(b[1]), x + 12, y + 45);
+    });
+    y += bh + 6;
+
+    /* Ingresos */
+    seccion("Mis ingresos", "Lo que llega cada mes se usa para los gastos fijos del día a día. Lo que llega cada dos meses, una vez al año o una sola vez se usa para ahorro, su objetivo y los pagos grandes del año.");
+    var colsI = [{ t: "Fuente", x: M, w: 180 }, { t: "Cada cuándo", x: M + 192 }, { t: "Cantidad", x: M + 362, a: "right" }, { t: "Al mes", x: M + 437, a: "right" }, { t: "Al año", x: W - M, a: "right", b: true }];
+    var filasI = c.fuentes.map(function (x) {
+      return { c: [x.nombre, x.q.label, money(x.monto), money(x.mes), money(x.anio)],
+        sub: (x.tipo && (x.f.detalle || "").trim() ? x.tipo.label + " · " : "") + (x.seguro ? "Llega seguro" : "Puede variar") + " · " + (x.destino === "diario" ? "Para el día a día" : "Para ahorro y metas"),
+        sw: x.destino === "diario" ? ACC : [204, 154, 38] };
+    });
+    filasI.push({ c: ["Total para el día a día", "", "", money(c.base), money(c.base * 12)], bold: true, color: ACC });
+    if (c.extra > 0) filasI.push({ c: ["Total de dinero extra", "", "", "", money(c.extra)], bold: true, color: ORO });
+    filasI.push({ c: ["Ingreso total", "", "", "", money(c.base * 12 + c.extra)], bold: true });
+    tabla(colsI, filasI);
+    if (c.base > 0 && c.seguro < c.base - 0.5) parrafo("De su dinero para el día a día, " + money(c.seguro) + " al mes llega seguro y " + money(c.base - c.seguro) + " puede variar.", 10.5, SOFT);
+
+    /* Gastos reales */
+    if (c.comp) {
+      seccion("Mis gastos reales", "Lo que anotó en su hoja de gastos. Los pagos de cada seis meses o una vez al año se marcan como pagos grandes del año.", 260);
+      var colsG = [{ t: "Concepto", x: M, w: 190 }, { t: "Cada cuándo", x: M + 200 }, { t: "Monto", x: M + 362, a: "right" }, { t: "Al mes", x: M + 437, a: "right", b: true }, { t: "Al año", x: W - M, a: "right" }];
+      var filasG = [];
+      RUBROS.forEach(function (r) {
+        var its = c.gastos.items.filter(function (x) { return x.rubro === r.id; });
+        if (!its.length) return;
+        its.forEach(function (x) {
+          filasG.push({ c: [x.label, fGasto(x.frec).label, money(x.monto), x.grande ? "-" : money(x.mes), money(x.anio)], sw: hex(r.pdf), sub: r.nombre + (x.grande ? " · Pago grande del año" : "") });
+        });
+      });
+      filasG.push({ c: ["Gastos de cada mes", "", "", money(c.gastos.mes), money(c.gastos.mes * 12)], bold: true, color: ACC });
+      if (c.gastos.grandes > 0) filasG.push({ c: ["Pagos grandes del año", "", "", money(c.gastos.grandes / 12), money(c.gastos.grandes)], bold: true, color: ORO });
+      tabla(colsG, filasG);
+      subtitulo("Resumen");
+      tablaKV(paresGastos(c));
+      aviso(c.comp.queda >= 0
+        ? { e: "ok", txt: "Después de sus gastos de hoy le quedan " + money(c.comp.queda) + " al mes para ahorro y su objetivo." }
+        : { e: "ojo", txt: "Hoy gasta " + money(-c.comp.queda) + " al mes más de lo que recibe cada mes. Revise los rubros donde gasta más de lo planeado." });
+      if (c.cobertura) aviso(c.cobertura);
+      subtitulo("Comparación con su plan");
+      var colsC = [{ t: "Rubro", x: M, w: 220 }, { t: "Planeado", x: M + 300, a: "right" }, { t: "Hoy gasta", x: M + 400, a: "right" }, { t: "Diferencia", x: W - M, a: "right", b: true }];
+      var filasC = c.comp.filas.map(function (x) { return { c: [x.nombre, money(x.plan), money(x.real), signo(x.dif)], colores: { 3: x.dif >= 0 ? ACC : BAD } }; });
+      filasC.push({ c: ["Total", money(c.comp.totPlan), money(c.comp.totReal), signo(c.comp.totPlan - c.comp.totReal)], bold: true, colores: { 3: c.comp.totPlan - c.comp.totReal >= 0 ? ACC : BAD } });
+      tabla(colsC, filasC);
+    }
+
+    /* Presupuesto de cada mes */
+    seccion("Presupuesto de cada mes", "Se basa en su dinero para el día a día: " + money(c.base) + " al mes.", 300);
+    barra(c.rubros, c.estMes === "listo" ? 100 : c.sumMes);
+    var colsM = [{ t: "Rubro", x: M, w: 210 }, { t: "%", x: M + 262, a: "right" }, { t: "Al mes", x: M + 345, a: "right", b: true }, { t: "Por semana", x: M + 428, a: "right" }, { t: "Al año", x: W - M, a: "right" }];
+    var filasM = [];
+    c.grupos.forEach(function (g) {
+      var rs = c.rubros.filter(function (r) { return r.it.grupo === g.g.id && r.pct > 0.001; });
+      if (!rs.length) return;
+      filasM.push({ c: [g.g.titulo, fmtPct(g.pct), money(g.mes), money(g.mes * 12 / 52), money(g.mes * 12)], bold: true, color: ACC, size: 11.5 });
+      rs.forEach(function (r) { filasM.push({ c: [r.nombre + (r.obj ? " (su objetivo)" : ""), fmtPct(r.pct), money(r.mes), money(r.mes * 12 / 52), money(r.mes * 12)], sw: hex(r.it.pdf) }); });
+    });
+    if (c.estMes === "falta") filasM.push({ c: ["Sin asignar", fmtPct(100 - c.sumMes), money(c.base - c.repMes), money((c.base - c.repMes) * 12 / 52), money((c.base - c.repMes) * 12)], color: WARN });
+    filasM.push({ c: ["Total repartido", c.estMes === "listo" ? "100%" : fmtPct(c.sumMes), money(c.repMes), money(c.repMes * 12 / 52), money(c.repMes * 12)], bold: true, color: c.estMes === "pasado" ? BAD : INK });
+    tabla(colsM, filasM);
+    parrafo("Como guía general, procure que lo indispensable no pase de 80% de su ingreso y que su futuro (ahorro y deudas) tenga al menos 10%. Su plan: lo indispensable " + fmtPct(c.grupos[0].pct) + ", su futuro " + fmtPct(c.grupos[1].pct) + ", familia y gustos " + fmtPct(c.grupos[2].pct) + ".", 10.5, SOFT);
+
+    /* Dinero extra */
+    if (c.extra > 0) {
+      seccion("Plan para mi dinero extra", "Es el dinero que no llega cada mes: " + money(c.extra) + " al año. Cada pago tiene su propio reparto, recomendado según qué tan seguido llega y su objetivo.", 300);
+      c.planFuentes.forEach(function (x) {
+        subtitulo(x.nombre + "  -  " + money(x.monto) + " (" + x.frec.toLowerCase() + ")", ORO);
+        parrafo("Recomendado: " + x.uso, 10.5, SOFT);
+        y += 6;
+        tabla([{ t: "Destino", x: M, w: 250 }, { t: "%", x: M + 300, a: "right" }, { t: "Por pago", x: M + 410, a: "right", b: true }, { t: "Al año", x: W - M, a: "right" }],
+          x.reparto.map(function (r) { return { c: [r.nombre, fmtPct(r.pct), money(r.monto), money(r.anio)], sw: hex(r.it.pdf) }; }));
+      });
+      subtitulo("Total por bolsa en el año");
+      barra(c.bolsas, c.repExtra / c.extra * 100 > 99.99 ? 100 : c.repExtra / c.extra * 100);
+      var filasE = [];
+      c.bolsas.forEach(function (b) { if (b.pct > 0.001) filasE.push({ c: [b.nombre + (b.obj ? " (su objetivo)" : ""), fmtPct(b.pct), money(b.anio / 12), money(b.anio)], sw: hex(b.it.pdf), sub: b.it.desc }); });
+      if (c.faltaExtra > 1) filasE.push({ c: ["Sin asignar", "", "", money(c.faltaExtra)], color: WARN });
+      tabla([{ t: "Bolsa", x: M, w: 250 }, { t: "%", x: M + 300, a: "right" }, { t: "Promedio al mes", x: M + 410, a: "right" }, { t: "Al año", x: W - M, a: "right", b: true }], filasE);
+      if (c.cobertura) aviso(c.cobertura);
+    }
+
+    /* Objetivo */
+    var p = c.objetivo;
+    if (p) {
+      seccion("Mi objetivo: " + p.titulo);
+      if (p.tipo === "alcanzar") { parrafo("Su objetivo es que le alcance el dinero cada mes. Su plan reparte " + money(c.repMes) + " de " + money(c.base) + " al mes. Use la hoja de seguimiento de este reporte para anotar sus gastos y compararlos con lo planeado.", 11, INK); y += 6; }
+      else { if (p.estado !== "sin-meta") tablaKV(paresObjetivo(p)); aviso(p.msg); }
+    }
+
+    /* Emergencias */
+    var e = c.emergencia;
+    if (e) {
+      seccion("Fondo para emergencias", "Es un colchón para imprevistos: una enfermedad, una reparación urgente o un mes en que no llegue algún ingreso. Lo recomendable es juntar de 3 a 6 meses de sus gastos indispensables.");
+      tablaKV(paresEmergencia(e));
+      aviso(e.msg);
+    }
+
+    /* Inflación */
+    seccion("La inflación", "Los precios suben cada año. En México la inflación anual fue de 3.62% en la primera quincena de octubre de 2026, según el INEGI. Este plan usa " + fmtPct(c.inf) + " al año.", 240);
+    if (c.infl.filas.length) {
+      tabla([{ t: "Concepto", x: M, w: 230 }, { t: "Hoy", x: M + 300, a: "right" }, { t: "En 1 año", x: M + 400, a: "right", b: true }, { t: "En 5 años", x: W - M, a: "right" }],
+        c.infl.filas.map(function (x) { return { c: [x.nombre, money(x.hoy), money(x.uno), money(x.cinco)] }; }));
+    }
+    c.infl.consejos.forEach(vineta);
+
+    /* Recomendaciones */
+    seccion("Recomendaciones para usted");
+    c.recos.forEach(function (g) { if (!g.items.length) return; subtitulo(g.titulo); g.items.forEach(vineta); y += 4; });
+
+    /* Hoja de seguimiento */
+    nuevaPagina();
+    seccion("Hoja de seguimiento del mes", "Imprima esta hoja y anote lo que gasta en cada rubro. Al final del mes compare con lo que planeó.");
+    parrafo("Mes: ____________________________        Año: ____________", 12, INK);
+    y += 12;
+    var colsS = [{ t: "Rubro", x: M, w: 190 }, { t: "Planeado", x: M + 280, a: "right", b: true }, { t: "Lo que gasté", x: M + 310 }, { t: "Diferencia", x: M + 420 }];
+    var filasS = c.rubros.filter(function (r) { return r.pct > 0.001; }).map(function (r) { return { c: [r.nombre, money(r.mes)], sw: hex(r.it.pdf) }; });
+    filasS.push({ c: ["Total", money(c.repMes)], bold: true });
+    tabla(colsS, filasS, { gap: 24 });
+    var com = c.mesDe("comida");
+    if (com > 0) {
+      subtitulo("Comida y despensa por semana");
+      parrafo("Su presupuesto semanal para comida es de " + money(com * 12 / 52) + ".", 10.5, SOFT);
+      y += 4;
+      tabla([{ t: "Semana", x: M, w: 150 }, { t: "Planeado", x: M + 280, a: "right", b: true }, { t: "Lo que gasté", x: M + 310 }, { t: "Diferencia", x: M + 420 }],
+        [1, 2, 3, 4, 5].map(function (n) { return { c: ["Semana " + n, money(com * 12 / 52)] }; }), { gap: 24 });
+    }
+
+    /* Glosario */
+    seccion("Qué incluye cada rubro");
+    var gl = c.rubros.filter(function (r) { return r.pct > 0.001; }).map(function (r) { return { n: r.nombre, d: r.it.desc, pdf: r.it.pdf }; });
+    if (c.extra > 0) gl = gl.concat(c.bolsas.filter(function (b) { return b.pct > 0.001; }).map(function (b) { return { n: b.nombre + " (dinero extra)", d: b.it.desc, pdf: b.it.pdf }; }));
+    gl.forEach(function (g) {
+      font("normal", 10.5, SOFT);
+      var ls = doc.splitTextToSize(t(g.d), CW - 18);
+      ensure(lh(11.5) + ls.length * lh(10.5) + 12);
+      var cl = hex(g.pdf);
+      doc.setFillColor(cl[0], cl[1], cl[2]); doc.rect(M, y - 8.5, 9, 9, "F");
+      font("bold", 11.5, INK); doc.text(t(g.n), M + 16, y);
+      y += lh(11.5);
+      font("normal", 10.5, SOFT); doc.text(ls, M + 16, y);
+      y += (ls.length - 1) * lh(10.5) + 20;
+    });
+
+    /* Pie */
+    var pages = doc.getNumberOfPages();
+    for (var i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.7); doc.line(M, H - 46, W - M, H - 46);
+      font("normal", 9, SOFT);
+      doc.text(t("Mi plan de dinero" + (nombre ? " · " + nombre : "") + " · Es una guía, no asesoría financiera profesional."), M, H - 30);
+      doc.text("Página " + i + " de " + pages, W - M, H - 30, { align: "right" });
+    }
+    var now = new Date(), mm = String(now.getMonth() + 1).padStart(2, "0");
+    return { doc: doc, filename: "plan-de-dinero-" + (slug(nombre) || "mensual") + "-" + now.getFullYear() + "-" + mm + ".pdf" };
+  }
+
+  var btnPdf = $("#btn-pdf"), pdfMsg = $("#pdf-msg");
+  function avisoPdf(texto, tipo) { pdfMsg.textContent = texto; if (tipo) pdfMsg.setAttribute("data-tipo", tipo); else pdfMsg.removeAttribute("data-tipo"); }
+  btnPdf.addEventListener("click", function () {
+    if (!window.jspdf || !window.jspdf.jsPDF) { avisoPdf("No se pudo preparar el PDF. Revise su conexión a internet, recargue la página y vuelva a intentarlo.", "bad"); return; }
+    btnPdf.disabled = true;
+    avisoPdf("Preparando su reporte…");
+    var built;
+    try { built = buildPdf(); } catch (e) { btnPdf.disabled = false; avisoPdf("No se pudo preparar el PDF. Vuelva a intentarlo.", "bad"); return; }
+    var enClaude = window.claude && typeof window.claude.use === "function";
+    if (!enClaude) {
+      try { built.doc.save(built.filename); avisoPdf("Listo. Busque el archivo " + built.filename + " en su carpeta de Descargas.", "ok"); }
+      catch (e) { avisoPdf("No se pudo descargar el reporte. Vuelva a intentarlo.", "bad"); }
+      btnPdf.disabled = false;
+      return;
+    }
+    window.claude.use("downloads").then(function (dl) {
+      if (!dl) { avisoPdf("La descarga no está disponible en esta vista. Abra la página en claude.ai y vuelva a intentarlo.", "bad"); return; }
+      return dl.save({ filename: built.filename, data: built.doc.output("blob") }).then(function (res) {
+        avisoPdf(res && res.status === "delivered" ? "Listo. Su reporte se envió." : "Listo. Su reporte en PDF se guardó.", "ok");
+      });
+    }).catch(function (e) {
+      var code = e && e.code;
+      if (code === "declined") avisoPdf("Canceló la descarga. Puede intentarlo de nuevo cuando quiera.");
+      else if (code === "rate_limited") avisoPdf("Ya hay una descarga abierta. Termínela y vuelva a intentarlo.");
+      else avisoPdf("No se pudo descargar el reporte. Vuelva a intentarlo en un momento.", "bad");
+    }).then(function () { btnPdf.disabled = false; });
+  });
+
+  /* =========================================================
+     Inicio
+     ========================================================= */
+  renderOps();
+  renderFuentes();
+  goTo(state.paso, false);
+})();
+</script>
+
+</body>
+</html>
