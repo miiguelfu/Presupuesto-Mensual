@@ -177,6 +177,7 @@ select.input {
 .btn-agregar .mas { font-size: 1.5rem; line-height: 1; }
 
 .totales { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.totales.uno { grid-template-columns: minmax(0, 1fr); }
 .totales > div { border-radius: 12px; padding: 1rem 1.25rem; display: grid; gap: 0.125rem; align-content: start; min-width: 0; }
 .totales .t-mes { background: var(--accent-soft); }
 .totales .t-extra { background: var(--oro-soft); }
@@ -474,9 +475,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
 
     <button type="button" class="btn-agregar" id="btn-agregar"><span class="mas" aria-hidden="true">+</span> Agregar otro ingreso</button>
 
-    <div class="totales" role="status" aria-live="polite">
+    <div class="totales uno" role="status" aria-live="polite">
       <div class="t-mes"><span>Para los gastos de cada mes</span><strong id="tot-mes">$0</strong><small>al mes</small></div>
-      <div class="t-extra"><span>Dinero extra para ahorro y metas</span><strong id="tot-extra">$0</strong><small>al año</small></div>
     </div>
 
     <p class="aviso" id="err-ingreso" hidden>Escriba al menos una cantidad para poder continuar.</p>
@@ -1479,7 +1479,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
 
   function updateTotales() {
     $("#tot-mes").textContent = money(baseMes());
-    $("#tot-extra").textContent = money(extraAnio());
     $$("#fuentes .fuente").forEach(function (card) {
       var hit = fuenteDe(card);
       if (!hit) return;
