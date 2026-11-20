@@ -225,6 +225,13 @@ legend { padding: 0; margin: 0 0 0.875rem; font-weight: 700; font-size: 1.125rem
 .op-d { color: var(--ink-soft); font-size: 1rem; }
 .op.sel { border-color: var(--accent); background: var(--accent-soft); }
 .obj-detalle { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; display: grid; gap: 1.125rem; }
+.pregunta { display: grid; gap: 0.75rem; border-radius: 12px; }
+.pregunta > legend { margin-bottom: 0.875rem; }
+.pregunta.falta { padding: 0.75rem; background: var(--bad-bg); box-shadow: inset 5px 0 0 var(--bad-ink); }
+#ops-coche { grid-template-columns: repeat(2, minmax(0, 12rem)); }
+.sub-bloque { display: grid; gap: 0.35rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.sub-bloque h3 { font-size: 1.375rem; }
+.sub-bloque p { color: var(--ink-soft); }
 .calc { background: var(--accent-soft); border-radius: 10px; padding: 0.875rem 1.125rem; font-weight: 700; color: var(--accent); }
 .situacion { display: grid; gap: 1rem; }
 .situacion-head { display: grid; gap: 0.25rem; }
@@ -285,9 +292,28 @@ legend { padding: 0; margin: 0 0 0.875rem; font-weight: 700; font-size: 1.125rem
 .gasto select.input { padding-left: 0.75rem; padding-right: 2.25rem; background-position: right 0.6rem center; }
 .gasto .grande { display: block; font-size: 0.85rem; font-weight: 700; color: var(--oro); }
 .gasto .g-mes { grid-column: 2 / -1; }
+.gasto .g-max { grid-column: 2; }
+.g-checks { display: flex; flex-wrap: wrap; gap: 0 1.125rem; }
+.g-monto, .g-max { display: grid; gap: 0.2rem; min-width: 0; }
+.g-ayuda { font-size: 0.9rem; color: var(--ink-soft); }
+.mini-lbl { font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); }
+.gasto-x .campo-var { grid-column: 1 / -1; }
+.fm-arriba { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
 .gasto-x .campo-mes { grid-column: 1 / -1; }
 .gasto-x { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .gasto-x .gx-top { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+.deudas-lista { display: grid; gap: 0.75rem; }
+.deudas-lista:empty { display: none; }
+.deuda { display: grid; gap: 0.625rem; padding-top: 0.75rem; border-top: 1px solid var(--line); }
+.deuda .gx-top { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+.deuda .lbl { font-weight: 700; font-size: 1.0625rem; }
+.deuda .fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.625rem; }
+.deuda .input { min-height: 3rem; font-size: 1.0625rem; }
+.deuda-calc { font-weight: 700; color: var(--accent); }
+.g-deudas.falta { border-color: var(--bad-ink); box-shadow: inset 5px 0 0 var(--bad-ink); background: color-mix(in srgb, var(--bad-ink) 4%, var(--surface)); }
+.g-deudas .btn-agregar { justify-self: start; }
+.fm-ev li.fin span:last-child { color: var(--accent); }
+@media (max-width: 560px) { .deuda .fila { grid-template-columns: 1fr; } }
 .estado { padding: 0.875rem 1.125rem; border-radius: 10px; font-weight: 700; }
 .estado[data-e="ok"] { background: var(--accent-soft); color: var(--accent); }
 .estado[data-e="ojo"] { background: var(--warn-bg); color: var(--warn-ink); }
@@ -494,6 +520,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   .diag-nums { grid-template-columns: minmax(0, 1fr); }
   .acciones-btn .btn { width: 100%; }
   .gasto .g-mes { grid-column: 1 / -1; }
+  .gasto .g-max { grid-column: 1 / 2; }
   .flujo-meses { grid-template-columns: minmax(0, 1fr); }
   .rubro-ctrl { grid-template-columns: minmax(0, 1fr); }
   .igual { display: none; }
@@ -532,7 +559,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
 
   <nav aria-label="Pasos">
     <ol class="pasos">
-      <li><button type="button" class="paso" data-ir="1" aria-label="Paso 1: Ingresos"><span class="num">1</span><span class="txt">Ingresos</span></button></li>
+      <li><button type="button" class="paso" data-ir="1" aria-label="Paso 1: Casa e ingresos"><span class="num">1</span><span class="txt">Ingresos</span></button></li>
       <li><button type="button" class="paso" data-ir="2" aria-label="Paso 2: Objetivo"><span class="num">2</span><span class="txt">Objetivo</span></button></li>
       <li><button type="button" class="paso" data-ir="3" aria-label="Paso 3: Mis gastos"><span class="num">3</span><span class="txt">Mis gastos</span></button></li>
       <li><button type="button" class="paso" data-ir="4" aria-label="Paso 4: Flujo del año"><span class="num">4</span><span class="txt">Flujo</span></button></li>
@@ -546,8 +573,29 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   <section class="panel" data-panel="1" aria-labelledby="h-paso1">
     <div class="panel-head">
       <p class="cuenta">Paso 1 de 7</p>
-      <h2 id="h-paso1" tabindex="-1">¿Cuánto dinero recibe?</h2>
-      <p>Anote cada entrada de dinero, aunque sea pequeña o llegue una sola vez al año, como el aguinaldo. Díganos cuánto recibe, cada cuándo y, si no llega cada mes, en qué mes llega. Nosotros le recomendamos en qué usarlo.</p>
+      <h2 id="h-paso1" tabindex="-1">Su casa y su dinero</h2>
+      <p>Primero díganos cómo vive: pagar renta o hipoteca cambia mucho lo que le recomendamos. Después anote cada entrada de dinero, aunque sea pequeña o llegue una sola vez al año, como el aguinaldo.</p>
+    </div>
+
+    <div class="campo">
+      <label for="nombre">Su nombre <span class="ayuda">(opcional, aparece en el reporte)</span></label>
+      <input class="input" id="nombre" type="text" autocomplete="name" placeholder="Por ejemplo: María López">
+    </div>
+
+    <fieldset class="pregunta" id="c-vivienda">
+      <legend>¿Paga renta o hipoteca?</legend>
+      <div class="ops" id="ops-viv"></div>
+      <p class="calc" id="viv-nota" role="status" aria-live="polite" hidden></p>
+    </fieldset>
+
+    <fieldset class="pregunta" id="c-coche">
+      <legend>¿Tiene coche?</legend>
+      <div class="ops" id="ops-coche"></div>
+    </fieldset>
+
+    <div class="sub-bloque">
+      <h3>Sus ingresos</h3>
+      <p>Díganos cuánto recibe, cada cuándo y, si no llega cada mes, en qué mes llega. Nosotros le recomendamos en qué usarlo.</p>
     </div>
 
     <div class="info">
@@ -555,13 +603,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       <ul>
         <li>Lo que llega <strong>cada mes</strong>, como su pensión, es para sus gastos fijos del día a día.</li>
         <li class="oro">Lo que llega <strong>cada dos meses</strong> se va a su objetivo y a su ahorro, porque llega seguido y le ayuda a juntar parejo.</li>
-        <li class="oro">Lo que llega <strong>una vez al año</strong>, como el aguinaldo, cubre los pagos grandes de inicio de año (predial, tenencia, seguros) y las fiestas.</li>
+        <li class="oro">Lo que llega <strong>una vez al año</strong>, como el aguinaldo, cubre los pagos grandes del año, como predial, tenencia o seguros, y las fiestas.</li>
       </ul>
-    </div>
-
-    <div class="campo">
-      <label for="nombre">Su nombre <span class="ayuda">(opcional, aparece en el reporte)</span></label>
-      <input class="input" id="nombre" type="text" autocomplete="name" placeholder="Por ejemplo: María López">
     </div>
 
     <div class="fuentes" id="fuentes"></div>
@@ -572,7 +615,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       <div class="t-mes"><span>Para los gastos de cada mes</span><strong id="tot-mes">$0</strong><small>al mes</small></div>
     </div>
 
-    <p class="aviso" id="err-ingreso" hidden>Escriba al menos una cantidad para poder continuar.</p>
+    <p class="aviso" id="err-ingreso" role="alert" hidden></p>
 
     <div class="nav">
       <button type="button" class="btn-texto" id="btn-ejemplo">Ver con un ejemplo</button>
@@ -595,6 +638,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
 
     <div class="obj-detalle" id="obj-detalle" hidden>
       <h3 id="obj-detalle-t">Detalles de su objetivo</h3>
+      <p class="info" id="obj-deuda-nota" hidden>Sus deudas las anota una sola vez en el siguiente paso, con cuánto debe y cuánto paga al mes de cada una. Con eso sacamos el total y en cuánto tiempo termina.</p>
       <div class="campo" id="c-objotro" hidden>
         <label for="obj-otro">¿Cuál es su objetivo?</label>
         <input class="input" id="obj-otro" type="text" autocomplete="off" maxlength="60" placeholder="Por ejemplo: comprar una lavadora">
@@ -603,7 +647,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         <div class="campo" id="c-meta">
           <label for="obj-meta" id="l-meta">¿Cuánto dinero necesita?</label>
           <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="obj-meta" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
-          <p class="ayuda" id="a-meta" hidden>Sume tarjetas, préstamos y compras a meses.</p>
           <button type="button" class="btn-texto" id="btn-meta-reco" hidden></button>
         </div>
         <div class="campo" id="c-tiene">
@@ -625,21 +668,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       <p class="calc" id="obj-calc" role="status" aria-live="polite"></p>
     </div>
 
-    <div class="situacion">
+    <div class="situacion" id="situacion">
       <div class="situacion-head">
-        <h3>Su situación hoy</h3>
-        <p>Opcional. Nos ayuda a darle mejores recomendaciones.</p>
+        <h3>Su ahorro hoy</h3>
+        <p>Opcional. Nos ayuda a calcular su fondo para emergencias.</p>
       </div>
-      <div class="fila">
-        <div class="campo" id="c-emerg">
-          <label for="sit-emerg">¿Cuánto tiene ahorrado para emergencias?</label>
-          <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="sit-emerg" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
-        </div>
-        <div class="campo" id="c-deuda">
-          <label for="sit-deuda">¿Cuánto debe en total?</label>
-          <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="sit-deuda" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
-          <p class="ayuda">Tarjetas, préstamos y compras a meses.</p>
-        </div>
+      <div class="campo campo-saldo" id="c-emerg">
+        <label for="sit-emerg">¿Cuánto tiene ahorrado para emergencias?</label>
+        <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="sit-emerg" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
       </div>
     </div>
 
@@ -660,7 +696,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     </div>
 
     <div class="info">
-      <p><strong>Pagos grandes del año.</strong> Lo que paga cada seis meses o una vez al año, como el predial, la tenencia o el seguro del coche, lo separamos del gasto de cada mes para planear con qué dinero cubrirlo.</p>
+      <p><strong>Pagos grandes del año.</strong> Lo que paga cada seis meses o una vez al año, como el predial, la tenencia, la verificación o un seguro, lo separamos del gasto de cada mes para planear con qué dinero cubrirlo.</p>
     </div>
 
     <div class="g-progreso" role="status" aria-live="polite">
@@ -810,6 +846,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
           <tbody id="comp-body"></tbody>
         </table>
       </div>
+      <div id="res-deudas"></div>
     </section>
 
     <section class="res-sec" id="sec-extra" aria-labelledby="rs-extra">
@@ -934,17 +971,17 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   ];
 
   var RUBROS = [
-    { id: "vivienda",   grupo: "basico", nombre: "Vivienda",                color: "--c-vivienda",   pdf: "#3F80C4", desc: "Renta o pago de la casa (hipoteca), cuota de mantenimiento y reparaciones pequeñas." },
+    { id: "vivienda",   grupo: "basico", nombre: "Vivienda",                color: "--c-vivienda",   pdf: "#3F80C4", desc: "Renta o hipoteca, cuota de mantenimiento, predial y reparaciones de la casa." },
     { id: "servicios",  grupo: "basico", nombre: "Servicios de la casa",    color: "--c-servicios",  pdf: "#33A3B8", desc: "Luz, agua, gas, teléfono, internet y televisión de paga." },
     { id: "comida",     grupo: "basico", nombre: "Comida y despensa",       color: "--c-comida",     pdf: "#4E9E4E", desc: "Súper o mercado, tortillas, frutas y verduras, y comidas fuera de casa." },
     { id: "salud",      grupo: "basico", nombre: "Salud",                   color: "--c-salud",      pdf: "#D35C50", desc: "Consultas, medicinas, análisis, dentista, lentes y seguro de gastos médicos." },
-    { id: "transporte", grupo: "basico", nombre: "Transporte",              color: "--c-transporte", pdf: "#8C6CBA", desc: "Gasolina, camión o metro, taxi o Uber, y servicio del coche." },
-    { id: "personal",   grupo: "basico", nombre: "Ropa y cuidado personal", color: "--c-personal",   pdf: "#6C8FC8", desc: "Ropa, zapatos, corte de cabello, artículos de higiene y de limpieza." },
+    { id: "transporte", grupo: "basico", nombre: "Transporte",              color: "--c-transporte", pdf: "#8C6CBA", desc: "Gasolina, camión o metro, taxi o Uber, servicio, seguro, tenencia y verificación del coche." },
+    { id: "personal",   grupo: "basico", nombre: "Ropa y cuidado personal", color: "--c-personal",   pdf: "#6C8FC8", desc: "Ropa, zapatos, corte y tinte de cabello, uñas, maquillaje, cremas y artículos de higiene." },
     { id: "ahorro",     grupo: "futuro", nombre: "Ahorro para emergencias", color: "--c-ahorro",     pdf: "#CC9A26", desc: "Dinero que aparta cada mes para imprevistos y para los meses difíciles." },
     { id: "meta",       grupo: "futuro", nombre: "Mi objetivo",             color: "--c-meta",       pdf: "#1E7A59", desc: "Lo que aparta cada mes para lograr el objetivo que eligió." },
     { id: "deudas",     grupo: "futuro", nombre: "Deudas",                  color: "--c-deudas",     pdf: "#8E7563", desc: "Pagos de tarjetas de crédito, préstamos y compras a meses." },
     { id: "familia",    grupo: "gusto",  nombre: "Familia y regalos",       color: "--c-familia",    pdf: "#D76A93", desc: "Apoyo a hijos o nietos, regalos, cumpleaños y celebraciones." },
-    { id: "gustos",     grupo: "gusto",  nombre: "Gustos y paseos",         color: "--c-gustos",     pdf: "#E58A33", desc: "Salidas, pasatiempos, cursos y suscripciones como Netflix o Spotify." },
+    { id: "gustos",     grupo: "gusto",  nombre: "Gustos y suscripciones",  color: "--c-gustos",     pdf: "#E58A33", desc: "Salidas, pasatiempos, cursos, gimnasio y suscripciones como Netflix, Spotify o Amazon Prime." },
     { id: "otros",      grupo: "gusto",  nombre: "Otros gastos",            color: "--c-otros",      pdf: "#8D9A95", desc: "Mascotas, donativos, cuotas y cualquier gasto que no aparezca arriba." }
   ];
 
@@ -957,9 +994,10 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   ];
 
   var GASTOS_BASE = [
-    { id: "renta",         rubro: "vivienda",   label: "Renta o hipoteca",               frec: "mensual" },
-    { id: "mantenimiento", rubro: "vivienda",   label: "Cuota de mantenimiento",         frec: "mensual" },
-    { id: "predial",       rubro: "vivienda",   label: "Predial",                        frec: "anual", mes: "0" },
+    { id: "renta",         rubro: "vivienda",   label: "Renta o hipoteca",               frec: "mensual", viv: ["renta", "hipoteca", "familia"] },
+    { id: "mantenimiento", rubro: "vivienda",   label: "Cuota de mantenimiento",         frec: "mensual", viv: ["renta", "hipoteca", "propia"] },
+    { id: "predial",       rubro: "vivienda",   label: "Predial",                        frec: "anual", mes: "0", viv: ["hipoteca", "propia"] },
+    { id: "reparaciones",  rubro: "vivienda",   label: "Reparaciones de la casa",        frec: "anual", viv: ["hipoteca", "propia"] },
     { id: "luz",           rubro: "servicios",  label: "Luz",                            frec: "bimestral" },
     { id: "agua",          rubro: "servicios",  label: "Agua",                           frec: "mensual" },
     { id: "gas",           rubro: "servicios",  label: "Gas",                            frec: "mensual" },
@@ -970,20 +1008,44 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     { id: "medicinas",     rubro: "salud",      label: "Medicinas",                      frec: "mensual" },
     { id: "consultas",     rubro: "salud",      label: "Consultas y estudios",           frec: "mensual" },
     { id: "seguro-medico", rubro: "salud",      label: "Seguro de gastos médicos",       frec: "anual" },
-    { id: "gasolina",      rubro: "transporte", label: "Gasolina",                       frec: "semanal" },
+    { id: "gasolina",      rubro: "transporte", label: "Gasolina",                       frec: "semanal", coche: true },
     { id: "pasajes",       rubro: "transporte", label: "Camión, taxi o Uber",            frec: "semanal" },
-    { id: "servicio-auto", rubro: "transporte", label: "Servicio del coche",             frec: "semestral" },
-    { id: "seguro-auto",   rubro: "transporte", label: "Seguro del coche",               frec: "anual" },
-    { id: "tenencia",      rubro: "transporte", label: "Tenencia o refrendo",            frec: "anual" },
+    { id: "servicio-auto", rubro: "transporte", label: "Servicio del coche",             frec: "semestral", coche: true },
+    { id: "seguro-auto",   rubro: "transporte", label: "Seguro del coche",               frec: "anual", coche: true },
+    { id: "tenencia",      rubro: "transporte", label: "Tenencia o refrendo",            frec: "anual", coche: true },
+    { id: "verificacion",  rubro: "transporte", label: "Verificación del coche",         frec: "semestral", coche: true, ayuda: "El mes depende de la terminación de su placa." },
     { id: "ropa",          rubro: "personal",   label: "Ropa y zapatos",                 frec: "mensual" },
     { id: "higiene",       rubro: "personal",   label: "Artículos de limpieza e higiene", frec: "mensual" },
-    { id: "tarjetas",      rubro: "deudas",     label: "Pago de tarjetas",               frec: "mensual" },
-    { id: "prestamos",     rubro: "deudas",     label: "Préstamos o compras a meses",    frec: "mensual" },
+    { id: "estetica",      rubro: "personal",   label: "Corte y tinte de cabello",       frec: "mensual" },
+    { id: "arreglo",       rubro: "personal",   label: "Uñas, maquillaje y cremas",      frec: "mensual" },
     { id: "apoyo-fam",     rubro: "familia",    label: "Apoyo a familiares",             frec: "mensual" },
     { id: "regalos",       rubro: "familia",    label: "Regalos y celebraciones",        frec: "mensual" },
     { id: "salidas",       rubro: "gustos",     label: "Salidas y paseos",               frec: "mensual" },
-    { id: "suscripciones", rubro: "gustos",     label: "Netflix, Spotify y similares",   frec: "mensual" },
+    { id: "gimnasio",      rubro: "gustos",     label: "Gimnasio, clases o club",        frec: "mensual", subs: true },
+    { id: "suscripciones", rubro: "gustos",     label: "Netflix, Spotify y similares",   frec: "mensual", subs: true },
+    { id: "otras-subs",    rubro: "gustos",     label: "Amazon Prime, apps y otras suscripciones", frec: "mensual", subs: true },
     { id: "mascotas",      rubro: "otros",      label: "Mascotas",                       frec: "mensual" }
+  ];
+
+  /* Vivienda: cambia los gastos que preguntamos y lo que recomendamos */
+  var VIVIENDAS = [
+    { id: "renta",    titulo: "Pago renta",                   desc: "Paga renta cada mes.", pago: "Renta" },
+    { id: "hipoteca", titulo: "Pago hipoteca o crédito",      desc: "Infonavit, Fovissste o banco.", pago: "Hipoteca o crédito de vivienda" },
+    { id: "propia",   titulo: "Casa propia, ya pagada",       desc: "No paga renta ni crédito." },
+    { id: "familia",  titulo: "Vivo con familiares",          desc: "No paga renta. Quizá da algo para la casa.", pago: "Lo que da para la casa" }
+  ];
+  var COCHE = [
+    { id: "si", titulo: "Sí", desc: "Le preguntamos sus gastos." },
+    { id: "no", titulo: "No", desc: "Nos los saltamos." }
+  ];
+  /* Deudas: se anotan una sola vez en la hoja de gastos (cuánto debe y cuánto paga al mes) */
+  var TIPOS_DEUDA = [
+    { id: "tarjeta",  label: "Tarjeta de crédito" },
+    { id: "prestamo", label: "Préstamo personal o de nómina" },
+    { id: "msi",      label: "Compras a meses" },
+    { id: "auto",     label: "Crédito de auto" },
+    { id: "familiar", label: "Préstamo de un familiar o conocido" },
+    { id: "otra",     label: "Otra deuda" }
   ];
 
   var BASICO = { vivienda: 25, servicios: 8, comida: 20, salud: 12, transporte: 7, personal: 3 };
@@ -1059,15 +1121,25 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   /* =========================================================
      Estado
      ========================================================= */
-  function presetMes(t) { var o = copia(BASICO), p = PRESET_MES[t] || PRESET_MES.ninguno; for (var k in p) o[k] = p[k]; return o; }
+  function presetMes(t) {
+    var o = copia(BASICO), p = PRESET_MES[t] || PRESET_MES.ninguno; for (var k in p) o[k] = p[k];
+    /* Sin renta ni hipoteca, lo que no va a la casa se va al ahorro; igual sin coche */
+    var v = state && state.vivienda, sinCoche = state && state.coche === "no";
+    if (v === "propia" || v === "familia") { var menos = o.vivienda - (v === "propia" ? 8 : 10); o.vivienda -= menos; o.ahorro += menos; }
+    if (sinCoche) { o.ahorro += o.transporte - 5; o.transporte = 5; }
+    return o;
+  }
   function tipoObjDe(id) { var o = porId(OBJETIVOS, id); return o ? o.tipo : "ninguno"; }
 
   var nextId = 1;
-  function nuevaFuente(o) { o = o || {}; return { id: nextId++, tipo: o.tipo || "", detalle: o.detalle || "", monto: o.monto || "", frecuencia: o.frecuencia || "mensual", mes: o.mes != null ? String(o.mes) : "", pct: o.pct || null, tocado: !!o.tocado }; }
+  function nuevaFuente(o) { o = o || {}; return { id: nextId++, tipo: o.tipo || "", detalle: o.detalle || "", monto: o.monto || "", frecuencia: o.frecuencia || "mensual", mes: o.mes != null ? String(o.mes) : "", variable: !!o.variable, montoMax: o.montoMax || "", pct: o.pct || null, tocado: !!o.tocado }; }
   var nextGx = 1;
-  function nuevoGastoExtra(o) { o = o || {}; return { id: nextGx++, label: o.label || "", rubro: rubroDe(o.rubro) ? o.rubro : "otros", monto: o.monto || "", frec: fGasto(o.frec).id, mes: o.mes != null ? String(o.mes) : "" }; }
+  function nuevoGastoExtra(o) { o = o || {}; return { id: nextGx++, label: o.label || "", rubro: rubroDe(o.rubro) ? o.rubro : "otros", monto: o.monto || "", frec: fGasto(o.frec).id, mes: o.mes != null ? String(o.mes) : "", variable: !!o.variable, montoMax: o.montoMax || "" }; }
+  var nextDx = 1;
+  function nuevaDeuda(o) { o = o || {}; return { id: nextDx++, tipo: porId(TIPOS_DEUDA, o.tipo) ? o.tipo : "", detalle: o.detalle || "", saldo: o.saldo || "", pago: o.pago || "" }; }
   function defaults() {
     return {
+      deudas: [], sinDeudas: false, vivienda: "", coche: "",
       nombre: "", fuentes: [nuevaFuente()],
       obj: "", objOtro: "", meta: "", metaTiene: "", plazo: 12, ahorroEmerg: "", deudaTotal: "",
       gastos: {}, gastosExtra: [],
@@ -1088,12 +1160,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var d = defaults();
     function str(v) { return typeof v === "string" ? v : (typeof v === "number" ? String(v) : ""); }
     d.nombre = str(s.nombre);
+    d.vivienda = porId(VIVIENDAS, s.vivienda) ? s.vivienda : "";
+    d.coche = porId(COCHE, s.coche) ? s.coche : "";
     if (Array.isArray(s.fuentes) && s.fuentes.length) {
       d.fuentes = s.fuentes.map(function (f) {
         f = f || {};
         var pct = null;
         if (f.pct && typeof f.pct === "object") { pct = {}; BOLSAS.forEach(function (b) { pct[b.id] = clamp(Number(f.pct[b.id]) || 0); }); }
-        var fu = nuevaFuente({ tipo: tipoDe(f.tipo) ? f.tipo : "", detalle: str(f.detalle), monto: str(f.monto), frecuencia: freq(f.frecuencia).id, mes: f.mes != null ? str(f.mes) : "", pct: pct, tocado: !!f.tocado && !!pct });
+        var fu = nuevaFuente({ tipo: tipoDe(f.tipo) ? f.tipo : "", detalle: str(f.detalle), monto: str(f.monto), frecuencia: freq(f.frecuencia).id, mes: f.mes != null ? str(f.mes) : "", variable: !!f.variable, montoMax: str(f.montoMax), pct: pct, tocado: !!f.tocado && !!pct });
         if (f.mes == null) fu.mes = mesDefaultIngreso(fu);
         return fu;
       });
@@ -1101,11 +1175,22 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     d.obj = porId(OBJETIVOS, s.obj) ? s.obj : "";
     d.objOtro = str(s.objOtro); d.meta = str(s.meta); d.metaTiene = str(s.metaTiene);
     d.ahorroEmerg = str(s.ahorroEmerg); d.deudaTotal = str(s.deudaTotal);
+    if (Array.isArray(s.deudas)) {
+      d.deudas = s.deudas.map(function (x) { x = x || {}; return nuevaDeuda({ tipo: x.tipo, detalle: str(x.detalle), saldo: str(x.saldo), pago: str(x.pago) }); });
+      d.sinDeudas = !!s.sinDeudas;
+    } else if (s.gastos && typeof s.gastos === "object") {
+      /* Versión anterior: pagos de tarjetas y préstamos en la hoja, y el total en otra pregunta */
+      var vt = s.gastos.tarjetas || {}, vp = s.gastos.prestamos || {};
+      if (parseMonto(vt.monto) > 0) d.deudas.push(nuevaDeuda({ tipo: "tarjeta", pago: str(vt.monto) }));
+      if (parseMonto(vp.monto) > 0) d.deudas.push(nuevaDeuda({ tipo: "prestamo", pago: str(vp.monto) }));
+      if (d.deudas.length === 1 && parseMonto(s.deudaTotal) > 0) d.deudas[0].saldo = str(s.deudaTotal);
+      d.sinDeudas = !d.deudas.length && !!vt.no && !!vp.no;
+    }
     d.plazo = PLAZOS.indexOf(Number(s.plazo)) >= 0 ? Number(s.plazo) : 12;
     if (s.gastos && typeof s.gastos === "object") {
-      GASTOS_BASE.forEach(function (g) { var v = s.gastos[g.id]; if (v && typeof v === "object") { d.gastos[g.id] = { monto: str(v.monto), frec: fGasto(v.frec || g.frec).id }; if (v.mes != null) d.gastos[g.id].mes = str(v.mes); if (v.no) d.gastos[g.id].no = true; } });
+      GASTOS_BASE.forEach(function (g) { var v = s.gastos[g.id]; if (v && typeof v === "object") { d.gastos[g.id] = { monto: str(v.monto), frec: fGasto(v.frec || g.frec).id }; if (v.mes != null) d.gastos[g.id].mes = str(v.mes); if (v.no) d.gastos[g.id].no = true; if (v.variable) { d.gastos[g.id].variable = true; d.gastos[g.id].montoMax = str(v.montoMax); } } });
     }
-    if (Array.isArray(s.gastosExtra)) d.gastosExtra = s.gastosExtra.map(function (x) { x = x || {}; return nuevoGastoExtra({ label: str(x.label), rubro: x.rubro, monto: str(x.monto), frec: x.frec, mes: str(x.mes) }); });
+    if (Array.isArray(s.gastosExtra)) d.gastosExtra = s.gastosExtra.map(function (x) { x = x || {}; return nuevoGastoExtra({ label: str(x.label), rubro: x.rubro, monto: str(x.monto), frec: x.frec, mes: str(x.mes), variable: !!x.variable, montoMax: str(x.montoMax) }); });
     d.pctTocado = !!s.pctTocado; d.pctReales = !!s.pctReales; d.pctAuto = !!s.pctAuto;
     d.planModo = ["real", "sugerido", "manual"].indexOf(s.planModo) >= 0 ? s.planModo : "real";
     d.provisionMes = Number(s.provisionMes) || 0; d.realNota = str(s.realNota);
@@ -1129,6 +1214,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function esRegular(f) { return freq(f.frecuencia).regular; }
   function esSeguro(f) { var t = tipoDe(f.tipo); return t ? t.seguro : true; }
   function anualDe(f) { return montoDe(f) * freq(f.frecuencia).porAnio; }
+  /* Si la cantidad cambia, el plan usa lo menos que recibe (caso difícil); esto es lo más */
+  function montoMaxDe(f) { return f.variable ? Math.max(parseMonto(f.montoMax), montoDe(f)) : montoDe(f); }
   function destinoDe(f) {
     if (esRegular(f)) return "diario";
     if (f.frecuencia === "bimestral") {
@@ -1193,6 +1280,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     sel.value = f.mes || "";
   }
 
+  /* Pagos grandes de ejemplo según su casa y su coche */
+  function ejemplosGrandes(cortos) {
+    var a = [];
+    if (state.vivienda !== "renta" && state.vivienda !== "familia") a.push("predial");
+    if (state.coche !== "no") a.push(cortos ? "tenencia" : "tenencia o refrendo");
+    a.push("seguros");
+    return a.join(", ");
+  }
+  function inicioAnio() {
+    var a = [];
+    if (state.vivienda !== "renta" && state.vivienda !== "familia") a.push("el predial");
+    if (state.coche !== "no") a.push("la tenencia o refrendo");
+    return a.length ? lista(a) : "";
+  }
   /* Texto de uso recomendado para cada ingreso */
   function usoTexto(f) {
     var t = tipoObj(), corto = objCorto(), d = destinoDe(f);
@@ -1202,10 +1303,10 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       if (t === "meta") return "Para su objetivo (" + corto + ") y su fondo para emergencias. Como llega seguido, le ayuda a juntar parejo.";
       if (t === "emergencias") return "Para su fondo para emergencias y para ir juntando los pagos grandes del año.";
       if (t === "deudas") return "Para adelantar pagos de sus deudas y para su fondo para emergencias.";
-      return "Para su fondo para emergencias y para ir juntando los pagos grandes del año (predial, tenencia, seguros).";
+      return "Para su fondo para emergencias y para ir juntando los pagos grandes del año (" + ejemplosGrandes(true) + ").";
     }
     if (f.frecuencia === "anual") {
-      var r = "Para los pagos grandes de inicio de año (predial, tenencia o refrendo, seguros) y las fiestas de fin de año";
+      var r = "Para los pagos grandes del año (" + ejemplosGrandes() + ") y las fiestas de fin de año";
       if (t === "meta") r += ", y una buena parte para su objetivo (" + corto + ")";
       else if (t === "deudas") r += ", y la mitad para adelantar pagos de sus deudas";
       else if (t === "emergencias") r += ", y la mitad para su fondo para emergencias";
@@ -1224,7 +1325,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function objCorto() { var o = objetivo(); if (!o) return ""; if (o.id === "otro") return state.objOtro.trim() || "Otro objetivo"; return o.corto; }
   function objTitulo() { var o = objetivo(); if (!o) return ""; if (o.id === "otro") return state.objOtro.trim() || "Otro objetivo"; return o.titulo; }
   function nombreMeta() { var o = objetivo(); if (o && o.id === "otro" && !state.objOtro.trim()) return "Mi objetivo"; return "Mi objetivo: " + objCorto(); }
-  function bindings() { var t = tipoObj(); return { meta: t === "deudas" ? "deudaTotal" : "meta", tiene: t === "emergencias" ? "ahorroEmerg" : "metaTiene" }; }
+  function bindings() { var t = tipoObj(); return { meta: "meta", tiene: t === "emergencias" ? "ahorroEmerg" : "metaTiene" }; }
   function normalizarOcultos() {
     if (tipoObj() === "meta") return;
     if (state.pct.meta) { state.pct.ahorro = (state.pct.ahorro || 0) + state.pct.meta; state.pct.meta = 0; }
@@ -1243,15 +1344,73 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   /* =========================================================
      Hoja de gastos
      ========================================================= */
+  /* Los gastos que aplican según su vivienda y si tiene coche */
+  function gastosBase() {
+    return GASTOS_BASE.filter(function (g) {
+      if (g.viv && g.viv.indexOf(state.vivienda) < 0) return false;
+      if (g.coche && state.coche === "no") return false;
+      return true;
+    });
+  }
+  function labelGasto(g) {
+    if (g.id === "renta") { var v = porId(VIVIENDAS, state.vivienda); return v && v.pago ? v.pago : g.label; }
+    return g.label;
+  }
   function gastoItems() {
-    var out = GASTOS_BASE.map(function (g) {
-      var v = state.gastos[g.id] || {};
-      return { key: g.id, label: g.label, rubro: g.rubro, monto: v.no ? 0 : parseMonto(v.monto), frec: v.frec || g.frec, mesPago: mesGastoBase(g, v) };
+    /* Si la cantidad cambia, el plan usa lo más que paga (caso difícil) */
+    function montos(no, variable, monto, montoMax) {
+      var min = no ? 0 : parseMonto(monto), max = !no && variable ? Math.max(parseMonto(montoMax), min) : min;
+      return { variable: !no && !!variable, montoMin: min, montoMax: max, monto: max };
+    }
+    var out = gastosBase().map(function (g) {
+      var v = state.gastos[g.id] || {}, m = montos(v.no, v.variable, v.monto, v.montoMax);
+      return { key: g.id, label: labelGasto(g), subs: !!g.subs, rubro: g.rubro, monto: m.monto, montoMin: m.montoMin, montoMax: m.montoMax, variable: m.variable, frec: v.frec || g.frec, mesPago: mesGastoBase(g, v) };
     });
     state.gastosExtra.forEach(function (x) {
-      out.push({ key: "x" + x.id, label: x.label.trim() || "Otro gasto", rubro: x.rubro, monto: parseMonto(x.monto), frec: x.frec, mesPago: x.mes || "", custom: true });
+      var m = montos(false, x.variable, x.monto, x.montoMax);
+      out.push({ key: "x" + x.id, label: x.label.trim() || "Otro gasto", rubro: x.rubro, monto: m.monto, montoMin: m.montoMin, montoMax: m.montoMax, variable: m.variable, frec: x.frec, mesPago: x.mes || "", custom: true });
+    });
+    deudasValidas().forEach(function (d) {
+      var p = parseMonto(d.pago);
+      if (p <= 0) return;
+      out.push({ key: "d" + d.id, label: nombreDeuda(d), rubro: "deudas", monto: p, montoMin: p, montoMax: p, variable: false, frec: "mensual", mesPago: "", deuda: true, meses: mesesDeuda(d), saldo: parseMonto(d.saldo) });
     });
     return out;
+  }
+  function deudasValidas() { return state.sinDeudas ? [] : state.deudas.filter(function (d) { return parseMonto(d.pago) > 0 || parseMonto(d.saldo) > 0; }); }
+  function totalDeudas() { return deudasValidas().reduce(function (a, d) { return a + parseMonto(d.saldo); }, 0); }
+  function pagoDeudas() { return deudasValidas().reduce(function (a, d) { return a + parseMonto(d.pago); }, 0); }
+  function nombreDeuda(d) {
+    var t = porId(TIPOS_DEUDA, d.tipo), det = (d.detalle || "").trim();
+    return det || (t ? t.label : "Deuda " + (state.deudas.indexOf(d) + 1));
+  }
+  /* Filas para la tabla de deudas: nombre, debe hoy, paga al mes, cuándo termina */
+  function filasDeudas() {
+    return deudasValidas().map(function (d) {
+      var n = mesesDeuda(d);
+      return [nombreDeuda(d), money(parseMonto(d.saldo)), money(parseMonto(d.pago)), n ? fmtMeses(n) + (n <= 60 ? " (" + fechaEn(n - 1) + ")" : "") : "—"];
+    });
+  }
+  /* Meses que faltan con el pago de hoy, sin contar intereses */
+  function mesesDeuda(d) { var s = parseMonto(d.saldo), p = parseMonto(d.pago); return s > 0 && p > 0 ? Math.max(1, Math.ceil(s / p)) : null; }
+  /* Lo que podría sobrar en un mes bueno: más ingreso que el mínimo y menos gasto que el máximo */
+  function variablesResumen() {
+    var r = { ingMes: 0, ingExtraAnio: 0, gasMes: 0, gasGrandesAnio: 0, ingNombres: [], gasNombres: [] };
+    state.fuentes.forEach(function (f) {
+      var dif = montoMaxDe(f) - montoDe(f);
+      if (!f.variable || dif <= 0) return;
+      r.ingNombres.push(nombreFuente(f));
+      if (destinoDe(f) === "diario") r.ingMes += dif * freq(f.frecuencia).porAnio / 12; else r.ingExtraAnio += dif * freq(f.frecuencia).porAnio;
+    });
+    gastoItems().forEach(function (x) {
+      var dif = x.montoMax - x.montoMin;
+      if (!x.variable || dif <= 0) return;
+      r.gasNombres.push(x.label);
+      if (esGrande(x.frec)) r.gasGrandesAnio += dif * fGasto(x.frec).porAnio; else r.gasMes += dif * fGasto(x.frec).porAnio / 12;
+    });
+    r.mes = r.ingMes + r.gasMes;
+    r.hay = r.ingNombres.length > 0 || r.gasNombres.length > 0;
+    return r;
   }
   function mesGastoBase(g, v) {
     v = v || {};
@@ -1542,12 +1701,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function r4(n) { return Math.round(n * 10000) / 10000; }
   /* Rangos de referencia, en % del dinero de cada mes */
   function rango(id) {
-    var t = tipoObj();
+    var t = tipoObj(), v = state.vivienda, sinPagoCasa = v === "propia" || v === "familia";
     var R = {
-      vivienda: { max: 30 }, servicios: { max: 10 }, comida: { max: 25 }, salud: { min: 8, max: 15 },
-      transporte: { max: 10 }, personal: { max: 5 }, deudas: t === "deudas" ? {} : { max: 15 },
+      /* Con renta o hipoteca, hasta 30%. Casa propia: solo predial, mantenimiento y reparaciones. */
+      vivienda: { max: v === "propia" ? 10 : v === "familia" ? 15 : 30 }, servicios: { max: 10 }, comida: { max: 25 }, salud: { min: 8, max: 15 },
+      transporte: { max: state.coche === "no" ? 7 : 12 }, personal: { max: 6 }, deudas: t === "deudas" ? {} : { max: 15 },
       familia: { max: 10 }, gustos: { max: 8 }, otros: { max: 5 },
-      ahorro: { min: t === "meta" ? 5 : 10 }, meta: { min: 5 }
+      /* Sin pagar renta ni hipoteca, le pedimos ahorrar 5 puntos más */
+      ahorro: { min: (t === "meta" ? 5 : 10) + (sinPagoCasa ? 5 : 0) }, meta: { min: 5 }
     };
     return R[id] || {};
   }
@@ -1581,7 +1742,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   }
   /* Cuánto mover: bajar poco a poco lo alto (como máximo 10% de lo que gasta hoy) y subir lo bajo hasta el mínimo */
   function ajusteSugerido(id, monto, base) {
-    if (id === "deudas") return 0;
+    /* La renta, la hipoteca y los pagos de deudas son fijos: no se bajan de un mes a otro */
+    if (id === "deudas" || id === "vivienda") return 0;
     var v = veredicto(id, monto, base);
     if (!v) return 0;
     if (v.e === "alto" || v.e === "muy-alto") return -Math.min(monto - v.rg.max * base / 100, monto * 0.1);
@@ -1591,6 +1753,12 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function consejoTxt(id, v, m, base) {
     if (v.e === "bien") return m > 0.5 ? "Va bien." : "";
     if (id === "deudas") return "Es alto. Concéntrese en liquidar primero la deuda que cobra más interés para bajar este pago.";
+    if (id === "vivienda" && v.e !== "bajo") {
+      var vv = state.vivienda;
+      if (vv === "renta") return "Es alto. La renta no se baja de un mes a otro: al renovar el contrato, negocie el aumento o busque algo más económico. Mientras, ajuste en otros gastos.";
+      if (vv === "hipoteca") return "Es alto. La hipoteca es un pago fijo, así que ajuste en otros gastos. Si recibe aguinaldo, un abono a capital le ayuda a terminar antes.";
+      return "Es alto para una casa sin renta ni crédito. Revise el mantenimiento y las reparaciones: aparte un poco cada mes para que no le lleguen de golpe.";
+    }
     var aj = ajusteSugerido(id, m, base);
     if (v.e === "bajo") return "Es bajo. Si su dinero lo permite, súbale " + money(aj) + " al mes.";
     var tope = v.rg.max * base / 100;
@@ -1672,6 +1840,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     else if (pctQueda < 10) msg = { e: "ojo", txt: "Le queda poco para ahorrar: " + fmtPct(Math.max(0, pctQueda)) + " de su ingreso. Lo recomendado es al menos 10% (" + money(R.base * 0.1) + " al mes)." };
     else msg = { e: "ok", txt: "Va bien: le queda " + fmtPct(pctQueda) + " de su ingreso para ahorro y su objetivo." };
     box.appendChild(estadoEl(msg));
+    var vr = variablesResumen();
+    if (vr.mes > 0.5) box.appendChild(estadoEl({ e: "info", txt: "Algunas cantidades cambian de un mes a otro. Calculamos con el caso difícil (lo menos que recibe y lo más que gasta). En un mes bueno le quedarían hasta " + money(vr.mes) + " más; guárdelos en su ahorro." }));
     var notas = [];
     RUBROS.forEach(function (x) {
       var m = R.porRubro[x.id], v = veredicto(x.id, m, R.base);
@@ -1749,17 +1919,22 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         '<div class="campo"><label for="fd-' + n + '">Descripción <span class="ayuda">(opcional)</span></label>' +
           '<input class="input" id="fd-' + n + '" data-campo="detalle" type="text" autocomplete="off" maxlength="60" placeholder="Por ejemplo: renta del local de la calle Hidalgo"></div>' +
         '<div class="fila">' +
-          '<div class="campo"><label for="fm-' + n + '">¿Cuánto recibe cada vez?</label>' +
+          '<div class="campo"><label for="fm-' + n + '" data-monto-label>¿Cuánto recibe cada vez?</label>' +
             '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="fm-' + n + '" data-campo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
           '<div class="campo"><label for="ff-' + n + '">¿Cada cuándo lo recibe?</label><select class="input" id="ff-' + n + '" data-campo="frecuencia">' + optsFrec + "</select></div>" +
         "</div>" +
+        '<label class="nolo"><input type="checkbox" data-campo="variable"> La cantidad cambia de una vez a otra</label>' +
+        '<div class="campo" data-max-campo hidden><label for="fmax-' + n + '">¿Cuánto es lo más que recibe?</label>' +
+          '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="fmax-' + n + '" data-campo="montoMax" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
         '<div class="campo" data-mes-campo hidden><label for="fmes-' + n + '" data-mes-label>¿En qué mes llega?</label><select class="input" id="fmes-' + n + '" data-campo="mes"></select></div>' +
         '<div class="uso" data-uso><span class="uso-t" data-uso-t></span><span data-uso-txt></span><span class="uso-eq" data-uso-eq></span></div>';
       card.querySelector('[data-campo="tipo"]').value = f.tipo;
       card.querySelector('[data-campo="detalle"]').value = f.detalle;
       card.querySelector('[data-campo="monto"]').value = f.monto;
       card.querySelector('[data-campo="frecuencia"]').value = f.frecuencia;
+      card.querySelector('[data-campo="montoMax"]').value = f.montoMax || "";
       pintarMesFuente(card, f);
+      pintarVariableFuente(card, f);
       cont.appendChild(card);
     });
     $("#nombre").value = state.nombre;
@@ -1773,12 +1948,18 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     return f ? { f: f, card: card } : null;
   }
 
+  function pintarVariableFuente(card, f) {
+    card.querySelector('[data-campo="variable"]').checked = !!f.variable;
+    card.querySelector("[data-monto-label]").textContent = f.variable ? "¿Cuánto es lo menos que recibe?" : "¿Cuánto recibe cada vez?";
+    card.querySelector("[data-max-campo]").hidden = !f.variable;
+  }
   function onCampo(e) {
     var el = e.target, campo = el.getAttribute && el.getAttribute("data-campo");
     if (!campo) return;
     var hit = fuenteDe(el);
     if (!hit) return;
-    hit.f[campo] = el.value;
+    hit.f[campo] = el.type === "checkbox" ? el.checked : el.value;
+    if (campo === "variable") pintarVariableFuente(hit.card, hit.f);
     if (e.type === "change" && campo === "tipo") {
       var t = tipoDe(el.value);
       if (t) { hit.f.frecuencia = t.frec; hit.card.querySelector('[data-campo="frecuencia"]').value = t.frec; }
@@ -1794,13 +1975,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   $("#fuentes").addEventListener("input", onCampo);
   $("#fuentes").addEventListener("change", onCampo);
   $("#fuentes").addEventListener("focusout", function (e) {
-    var el = e.target;
-    if (el.getAttribute("data-campo") !== "monto") return;
+    var el = e.target, cm = el.getAttribute("data-campo");
+    if (cm !== "monto" && cm !== "montoMax") return;
     var hit = fuenteDe(el);
     if (!hit) return;
     var n = parseMonto(el.value);
     el.value = n > 0 ? n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : "";
-    hit.f.monto = el.value;
+    hit.f[cm] = el.value;
     save();
   });
   $("#fuentes").addEventListener("click", function (e) {
@@ -1813,6 +1994,45 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     renderFuentes();
   });
   $("#nombre").addEventListener("input", function (e) { state.nombre = e.target.value; save(); });
+
+  /* Vivienda y coche: cambian los gastos que preguntamos y lo que recomendamos */
+  function opsHtml(arr, name) {
+    return arr.map(function (o) { return '<label class="op"><input type="radio" name="' + name + '" value="' + o.id + '"><span class="op-t">' + esc(o.titulo) + '</span><span class="op-d">' + esc(o.desc) + "</span></label>"; }).join("");
+  }
+  $("#ops-viv").innerHTML = opsHtml(VIVIENDAS, "vivienda");
+  $("#ops-coche").innerHTML = opsHtml(COCHE, "coche");
+  function notaVivienda() {
+    var v = state.vivienda;
+    if (v === "renta") return "Le recomendamos que la renta no pase de 30% de su dinero de cada mes. La renta suele subir cada año al renovar el contrato, así que la tomamos en cuenta en la inflación.";
+    if (v === "hipoteca") return "Le recomendamos que la hipoteca no pase de 30% de su dinero de cada mes. Es un pago fijo: si su casa se lleva mucho, ajustamos en otros gastos.";
+    if (v === "propia") return "Como no paga renta ni crédito, su casa no debería llevarse más de 10% de su dinero, y le pedimos ahorrar un poco más. Sí le preguntamos predial y reparaciones.";
+    if (v === "familia") return "Como no paga renta, le pedimos ahorrar un poco más. Si da algo para la casa, anótelo en la hoja de gastos.";
+    return "";
+  }
+  function renderCasa() {
+    $$("#ops-viv .op").forEach(function (lab) { var inp = lab.querySelector("input"); inp.checked = inp.value === state.vivienda; lab.classList.toggle("sel", inp.checked); });
+    $$("#ops-coche .op").forEach(function (lab) { var inp = lab.querySelector("input"); inp.checked = inp.value === state.coche; lab.classList.toggle("sel", inp.checked); });
+    var nota = notaVivienda();
+    $("#viv-nota").hidden = !nota;
+    $("#viv-nota").textContent = nota;
+  }
+  function onCasa(e) {
+    var el = e.target;
+    if (el.name === "vivienda") {
+      state.vivienda = el.value;
+      /* Si paga renta o hipoteca, ese gasto no puede quedar en «No lo pago» */
+      var g = state.gastos.renta;
+      if (g && g.no && (el.value === "renta" || el.value === "hipoteca")) delete g.no;
+    } else if (el.name === "coche") state.coche = el.value;
+    else return;
+    save();
+    renderCasa();
+    renderGastos();
+    pintarErrores(1);
+    updateStepper();
+  }
+  $("#c-vivienda").addEventListener("change", onCasa);
+  $("#c-coche").addEventListener("change", onCasa);
   $("#btn-agregar").addEventListener("click", function () {
     var f = nuevaFuente();
     state.fuentes.push(f);
@@ -1824,11 +2044,15 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   $("#btn-ejemplo").addEventListener("click", function () {
     state.fuentes = [
       nuevaFuente({ tipo: "pension-imss", monto: "9,800", frecuencia: "mensual" }),
-      nuevaFuente({ tipo: "renta", detalle: "Renta de un cuarto", monto: "2,500", frecuencia: "mensual" }),
+      nuevaFuente({ tipo: "renta", detalle: "Renta de un cuarto", monto: "2,000", frecuencia: "mensual", variable: true, montoMax: "2,500" }),
       nuevaFuente({ tipo: "apoyo", monto: "1,000", frecuencia: "quincenal" }),
       nuevaFuente({ tipo: "aguinaldo", monto: "9,800", frecuencia: "anual", mes: "11" })
     ];
+    if (!state.vivienda) state.vivienda = "propia";
+    if (!state.coche) state.coche = "si";
     save();
+    renderCasa();
+    renderGastos();
     renderFuentes();
   });
 
@@ -1848,6 +2072,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         else if (d === "extra" && freq(f.frecuencia).porAnio > 1) eq = "Suma " + money(anualDe(f)) + " al año.";
       }
       if (necesitaMes(f.frecuencia)) eq = (eq ? eq + " " : "") + (f.mes === "" ? "Elija el mes para verlo en su flujo del año." : "Llega en " + textoMeses(f.frecuencia, f.mes) + ".");
+      if (f.variable && n > 0 && montoMaxDe(f) > n) eq = "Varía entre " + money(n) + " y " + money(montoMaxDe(f)) + ". Planeamos con lo menos para que no le falte; lo que reciba de más, guárdelo. " + eq;
       var eqEl = card.querySelector("[data-uso-eq]");
       eqEl.textContent = eq;
       eqEl.hidden = !eq;
@@ -1878,11 +2103,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     $("#obj-detalle").hidden = !(t === "meta" || t === "emergencias" || t === "deudas");
     $("#obj-detalle-t").textContent = o ? o.titulo : "";
     $("#c-objotro").hidden = !(o && o.id === "otro");
+    $("#c-meta").hidden = t === "deudas";
     $("#c-tiene").hidden = t === "deudas";
-    $("#c-emerg").hidden = t === "emergencias";
-    $("#c-deuda").hidden = t === "deudas";
-    $("#a-meta").hidden = t !== "deudas";
-    $("#l-meta").textContent = t === "deudas" ? "¿Cuánto debe en total?" : t === "emergencias" ? "¿Cuánto quiere juntar?" : "¿Cuánto dinero necesita?";
+    $("#obj-deuda-nota").hidden = t !== "deudas";
+    $("#situacion").hidden = t === "emergencias";
+    $("#l-meta").textContent = t === "emergencias" ? "¿Cuánto quiere juntar?" : "¿Cuánto dinero necesita?";
     $("#l-tiene").textContent = t === "emergencias" ? "¿Cuánto tiene ya ahorrado para emergencias?" : "¿Cuánto tiene ya juntado para esto?";
     $("#l-plazo").textContent = t === "deudas" ? "¿En cuánto tiempo quiere terminar de pagar?" : "¿En cuánto tiempo quiere lograrlo?";
     var b = bindings();
@@ -1891,7 +2116,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     $("#obj-otro").value = state.objOtro;
     $("#obj-plazo").value = String(state.plazo);
     $("#sit-emerg").value = state.ahorroEmerg;
-    $("#sit-deuda").value = state.deudaTotal;
     updateCalcObj();
   }
   function updateCalcObj() {
@@ -1902,13 +2126,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     pintarErrores(2);
     updateStepper();
     if (t !== "meta" && t !== "emergencias" && t !== "deudas") { box.hidden = true; return; }
-    var b = bindings(), meta = parseMonto(state[b.meta]), tiene = t === "deudas" ? 0 : parseMonto(state[b.tiene]), txt;
+    var b = bindings(), meta = t === "deudas" ? totalDeudas() : parseMonto(state[b.meta]), tiene = t === "deudas" ? 0 : parseMonto(state[b.tiene]), txt;
     if (t === "emergencias" && !meta) txt = "Le recomendamos juntar al menos 3 meses de sus gastos indispensables: " + money(r3) + ". Si no escribe otra cantidad, usaremos esa.";
-    else if (!meta) txt = t === "deudas" ? "Escriba cuánto debe para calcular cuánto abonar al mes." : "Escriba la cantidad para calcular cuánto apartar al mes.";
+    else if (!meta) txt = t === "deudas" ? "Cuando anote sus deudas en el siguiente paso, le diremos cuánto abonar al mes para terminar en ese plazo." : "Escriba la cantidad para calcular cuánto apartar al mes.";
     else if (tiene >= meta) txt = "¡Ya tiene lo necesario para este objetivo!";
     else {
       var x = (meta - tiene) / state.plazo;
-      txt = t === "deudas" ? "Para terminar de pagar en " + fmtMeses(state.plazo) + " necesita abonar " + money(x) + " al mes, sin contar intereses." : "Para lograrlo en " + fmtMeses(state.plazo) + " necesita apartar " + money(x) + " al mes.";
+      txt = t === "deudas" ? "Sus deudas suman " + money(meta) + ". Para terminar de pagar en " + fmtMeses(state.plazo) + " necesita abonar " + money(x) + " al mes, sin contar intereses." : "Para lograrlo en " + fmtMeses(state.plazo) + " necesita apartar " + money(x) + " al mes.";
       txt += " En los siguientes pasos verá si su plan lo alcanza.";
     }
     box.textContent = txt;
@@ -1919,7 +2143,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   $("#obj-otro").addEventListener("input", function (e) { state.objOtro = e.target.value; save(); pintarErrores(2); updateStepper(); });
   $("#obj-plazo").addEventListener("change", function (e) { state.plazo = Number(e.target.value) || 12; save(); updateCalcObj(); });
   $("#sit-emerg").addEventListener("input", function (e) { state.ahorroEmerg = e.target.value; save(); });
-  $("#sit-deuda").addEventListener("input", function (e) { state.deudaTotal = e.target.value; save(); });
   $$("[data-dinero]").forEach(function (el) {
     el.addEventListener("focusout", function () {
       var n = parseMonto(el.value);
@@ -1939,22 +2162,39 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function aplicarNo(row, no) {
     if (!row) return;
     row.classList.toggle("es-no", no);
-    Array.prototype.forEach.call(row.querySelectorAll('[data-gcampo="monto"], [data-gcampo="frec"], [data-gcampo="mes"]'), function (el) { el.disabled = no; });
+    Array.prototype.forEach.call(row.querySelectorAll('[data-gcampo="monto"], [data-gcampo="montoMax"], [data-gcampo="variable"], [data-gcampo="frec"], [data-gcampo="mes"]'), function (el) { el.disabled = no; });
   }
-  function filaGasto(key, label, monto, frec, mes, no) {
+  function pintarVariableGasto(row, variable) {
+    if (!row) return;
+    var cb = row.querySelector('[data-gcampo="variable"]');
+    if (cb) cb.checked = !!variable;
+    var min = row.querySelector("[data-min-lbl]");
+    if (min) min.hidden = !variable;
+    var max = row.querySelector("[data-max-gasto]");
+    if (max) max.hidden = !variable;
+    var lbl = row.querySelector("[data-monto-label]");
+    if (lbl) lbl.textContent = variable ? "¿Cuánto es lo menos que paga?" : "¿Cuánto paga?";
+  }
+  function filaGasto(key, label, monto, frec, mes, no, variable, montoMax) {
     var d = document.createElement("div");
     d.className = "gasto";
     d.setAttribute("data-row", key);
     d.innerHTML =
       '<div class="g-nombre"><label for="gm-' + key + '">' + esc(label) + '<span class="grande" data-grande hidden>Pago grande del año</span></label>' +
-        '<label class="nolo"><input type="checkbox" data-gasto="' + key + '" data-gcampo="no"> No lo pago</label></div>' +
-      '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>' +
+        '<div class="g-checks"><label class="nolo"><input type="checkbox" data-gasto="' + key + '" data-gcampo="no"> No lo pago</label>' +
+        '<label class="nolo"><input type="checkbox" data-gasto="' + key + '" data-gcampo="variable"> Cambia cada vez</label></div></div>' +
+      '<div class="g-monto"><span class="mini-lbl" data-min-lbl hidden>Lo menos</span>' +
+        '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
       '<select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec" aria-label="Cada cuándo paga ' + esc(label) + '">' + optsFrecGasto() + "</select>" +
+      '<div class="g-max" data-max-gasto hidden><span class="mini-lbl">Lo más</span>' +
+        '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gmax-' + key + '" data-gasto="' + key + '" data-gcampo="montoMax" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Lo más que paga de ' + esc(label) + '"></div></div>' +
       '<select class="input g-mes" id="gmes-' + key + '" data-gasto="' + key + '" data-gcampo="mes" aria-label="Mes en que paga ' + esc(label) + '"></select>';
     d.querySelector('[data-gcampo="monto"]').value = monto;
+    d.querySelector('[data-gcampo="montoMax"]').value = montoMax || "";
     d.querySelector('[data-gcampo="frec"]').value = frec;
     d.querySelector("[data-grande]").hidden = !esGrande(frec);
     pintarMesGasto(d, frec, mes);
+    pintarVariableGasto(d, !!variable && !no);
     d.querySelector('[data-gcampo="no"]').checked = !!no;
     aplicarNo(d, !!no);
     return d;
@@ -1974,13 +2214,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var cont = $("#gastos");
     cont.textContent = "";
     RUBROS.forEach(function (r) {
-      var items = GASTOS_BASE.filter(function (g) { return g.rubro === r.id; });
+      if (r.id === "deudas") { cont.appendChild(bloqueDeudas()); return; }
+      var items = gastosBase().filter(function (g) { return g.rubro === r.id; });
       if (!items.length) return;
       var box = document.createElement("div");
       box.className = "g-grupo";
       box.style.setProperty("--c", "var(" + r.color + ")");
       box.innerHTML = '<div class="g-head"><h3><span class="sw" aria-hidden="true"></span>' + esc(r.nombre) + '</h3><span class="g-sub" id="gsub-' + r.id + '"></span></div>';
-      items.forEach(function (g) { var v = state.gastos[g.id] || {}; box.appendChild(filaGasto(g.id, g.label, v.no ? "" : v.monto || "", v.frec || g.frec, mesGastoBase(g, v), !!v.no)); });
+      items.forEach(function (g) {
+        var v = state.gastos[g.id] || {}, row = filaGasto(g.id, labelGasto(g), v.no ? "" : v.monto || "", v.frec || g.frec, mesGastoBase(g, v), !!v.no, !!v.variable, v.montoMax);
+        var fija = g.id === "renta" && (state.vivienda === "renta" || state.vivienda === "hipoteca");
+        if (fija) row.querySelector('[data-gcampo="no"]').closest("label").hidden = true;
+        if (g.ayuda) { var a = document.createElement("span"); a.className = "g-ayuda"; a.textContent = g.ayuda; row.querySelector(".g-nombre").insertBefore(a, row.querySelector(".g-checks")); }
+        box.appendChild(row);
+      });
       cont.appendChild(box);
     });
     if (state.gastosExtra.length) {
@@ -1998,19 +2245,91 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
           '<div class="gx-top"><span class="lbl">Otro gasto</span><button type="button" class="btn-quitar" data-quitar-gasto="' + x.id + '">Quitar</button></div>' +
           '<div class="campo"><label for="gl-' + key + '">¿Qué es?</label><input class="input" id="gl-' + key + '" data-gasto="' + key + '" data-gcampo="label" type="text" maxlength="50" autocomplete="off" placeholder="Por ejemplo: clases de pintura"></div>' +
           '<div class="campo"><label for="gr-' + key + '">¿En qué rubro va?</label><select class="input" id="gr-' + key + '" data-gasto="' + key + '" data-gcampo="rubro">' + optsR + "</select></div>" +
-          '<div class="campo"><label for="gm-' + key + '">¿Cuánto paga?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+          '<div class="campo"><label for="gm-' + key + '" data-monto-label>¿Cuánto paga?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+          '<div class="campo" data-max-gasto hidden><label for="gmax-' + key + '">¿Cuánto es lo más que paga?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gmax-' + key + '" data-gasto="' + key + '" data-gcampo="montoMax" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+          '<label class="nolo campo-var"><input type="checkbox" data-gasto="' + key + '" data-gcampo="variable"> La cantidad cambia cada vez</label>' +
           '<div class="campo"><label for="gf-' + key + '">¿Cada cuándo?</label><select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec">' + optsFrecGasto() + "</select></div>" +
           '<div class="campo campo-mes"><label for="gmes-' + key + '">¿En qué mes?</label><select class="input" id="gmes-' + key + '" data-gasto="' + key + '" data-gcampo="mes"></select></div>';
         d.querySelector('[data-gcampo="label"]').value = x.label;
         d.querySelector('[data-gcampo="rubro"]').value = x.rubro;
         d.querySelector('[data-gcampo="monto"]').value = x.monto;
         d.querySelector('[data-gcampo="frec"]').value = x.frec;
+        d.querySelector('[data-gcampo="montoMax"]').value = x.montoMax || "";
         pintarMesGasto(d, x.frec, x.mes);
+        pintarVariableGasto(d, !!x.variable);
         box.appendChild(d);
       });
       cont.appendChild(box);
     }
     updateGastos();
+  }
+  /* Bloque de deudas: cada deuda una sola vez, con lo que debe y lo que paga al mes */
+  function bloqueDeudas() {
+    var box = document.createElement("div");
+    box.className = "g-grupo g-deudas";
+    box.style.setProperty("--c", "var(--c-deudas)");
+    box.setAttribute("data-row", "deudas");
+    box.innerHTML =
+      '<div class="g-head"><h3><span class="sw" aria-hidden="true"></span>Deudas</h3><span class="g-sub" id="gsub-deudas"></span></div>' +
+      '<p class="ayuda">Anote cada deuda una sola vez: cuánto debe hoy y cuánto paga al mes. Con eso sacamos el total y en cuánto tiempo termina. La hipoteca va arriba, en Vivienda.</p>' +
+      '<label class="nolo"><input type="checkbox" id="sin-deudas"> No tengo deudas</label>' +
+      '<div class="deudas-lista" id="lista-deudas"></div>' +
+      '<button type="button" class="btn-agregar" id="btn-agregar-deuda"><span class="mas" aria-hidden="true">+</span> Agregar una deuda</button>';
+    box.querySelector("#sin-deudas").checked = !!state.sinDeudas;
+    var lista = box.querySelector("#lista-deudas");
+    var opts = '<option value="">Elija una opción…</option>' + TIPOS_DEUDA.map(function (t) { return '<option value="' + t.id + '">' + esc(t.label) + "</option>"; }).join("");
+    state.deudas.forEach(function (d, i) {
+      var k = d.id, row = document.createElement("div");
+      row.className = "deuda";
+      row.setAttribute("data-deuda", String(k));
+      row.innerHTML =
+        '<div class="gx-top"><span class="lbl">Deuda ' + (i + 1) + '</span><button type="button" class="btn-quitar" data-quitar-deuda="' + k + '">Quitar</button></div>' +
+        '<div class="campo"><label for="dt-' + k + '">¿Qué deuda es?</label><select class="input" id="dt-' + k + '" data-dcampo="tipo">' + opts + "</select></div>" +
+        '<div class="campo"><label for="dd-' + k + '">Descripción <span class="ayuda">(opcional)</span></label><input class="input" id="dd-' + k + '" data-dcampo="detalle" type="text" maxlength="50" autocomplete="off" placeholder="Por ejemplo: tarjeta del banco"></div>' +
+        '<div class="fila">' +
+          '<div class="campo"><label for="ds-' + k + '">¿Cuánto debe hoy en total?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="ds-' + k + '" data-dcampo="saldo" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+          '<div class="campo"><label for="dp-' + k + '">¿Cuánto paga al mes?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="dp-' + k + '" data-dcampo="pago" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
+        "</div>" +
+        '<p class="deuda-calc" data-dcalc hidden></p>';
+      row.querySelector('[data-dcampo="tipo"]').value = d.tipo;
+      row.querySelector('[data-dcampo="detalle"]').value = d.detalle;
+      row.querySelector('[data-dcampo="saldo"]').value = d.saldo;
+      row.querySelector('[data-dcampo="pago"]').value = d.pago;
+      lista.appendChild(row);
+    });
+    lista.hidden = !!state.sinDeudas;
+    box.querySelector("#btn-agregar-deuda").hidden = !!state.sinDeudas;
+    return box;
+  }
+  function deudaPorId(id) { for (var i = 0; i < state.deudas.length; i++) if (String(state.deudas[i].id) === String(id)) return state.deudas[i]; return null; }
+  function onDeuda(e) {
+    var el = e.target;
+    if (el.id === "sin-deudas") {
+      state.sinDeudas = el.checked;
+      if (el.checked) state.deudas = state.deudas.filter(function (d) { return parseMonto(d.saldo) > 0 || parseMonto(d.pago) > 0; });
+      save();
+      renderGastos();
+      return true;
+    }
+    var campo = el.getAttribute && el.getAttribute("data-dcampo");
+    if (!campo) return false;
+    var row = el.closest(".deuda"), d = row && deudaPorId(row.getAttribute("data-deuda"));
+    if (!d) return true;
+    d[campo] = el.value;
+    save();
+    updateGastos();
+    return true;
+  }
+  function pintarDeudas() {
+    var tot = totalDeudas(), pago = pagoDeudas(), sub = $("#gsub-deudas");
+    if (sub) sub.textContent = state.sinDeudas ? "Sin deudas" : (tot > 0 || pago > 0 ? "Debe " + money(tot) + " · paga " + money(pago) + " al mes" : "");
+    $$("#lista-deudas .deuda").forEach(function (row) {
+      var d = deudaPorId(row.getAttribute("data-deuda")), p = row.querySelector("[data-dcalc]");
+      if (!d || !p) return;
+      var n = mesesDeuda(d);
+      p.hidden = !n;
+      if (n) p.textContent = "Con este pago termina en " + fmtMeses(n) + (n <= 36 ? ", hacia " + fechaEn(n - 1) : "") + ", sin contar intereses.";
+    });
   }
   function gastoExtraPorKey(key) { var id = key.slice(1); for (var i = 0; i < state.gastosExtra.length; i++) if (String(state.gastosExtra[i].id) === id) return state.gastosExtra[i]; return null; }
   function onGasto(e) {
@@ -2027,6 +2346,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         state.gastos[key] = v0;
         aplicarNo(row, el.checked);
       }
+      save();
+      updateGastos();
+      return;
+    }
+    if (campo === "variable") {
+      if (key.charAt(0) === "x") { var xv = gastoExtraPorKey(key); if (xv) xv.variable = el.checked; }
+      else { var bv = porId(GASTOS_BASE, key), vv = state.gastos[key] || { monto: "", frec: bv.frec }; vv.variable = el.checked; state.gastos[key] = vv; }
+      pintarVariableGasto(row, el.checked);
       save();
       updateGastos();
       return;
@@ -2049,16 +2376,40 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     save();
     updateGastos();
   }
-  $("#gastos").addEventListener("input", onGasto);
-  $("#gastos").addEventListener("change", onGasto);
+  $("#gastos").addEventListener("input", function (e) { if (!onDeuda(e)) onGasto(e); });
+  $("#gastos").addEventListener("change", function (e) { if (!onDeuda(e)) onGasto(e); });
   $("#gastos").addEventListener("focusout", function (e) {
-    var el = e.target;
-    if (el.getAttribute("data-gcampo") !== "monto") return;
+    var el = e.target, cg = el.getAttribute("data-gcampo"), cd = el.getAttribute("data-dcampo");
+    if (cd === "saldo" || cd === "pago") {
+      var nd = parseMonto(el.value);
+      el.value = nd > 0 ? nd.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : "";
+      onDeuda({ target: el });
+      return;
+    }
+    if (cg !== "monto" && cg !== "montoMax") return;
     var n = parseMonto(el.value);
     el.value = n > 0 ? n.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : "";
     onGasto({ target: el });
   });
   $("#gastos").addEventListener("click", function (e) {
+    if (e.target.closest("#btn-agregar-deuda")) {
+      var nd = nuevaDeuda();
+      state.deudas.push(nd);
+      state.sinDeudas = false;
+      save();
+      renderGastos();
+      var sel = document.getElementById("dt-" + nd.id);
+      if (sel) sel.focus();
+      return;
+    }
+    var qd = e.target.closest("[data-quitar-deuda]");
+    if (qd) {
+      var idd = qd.getAttribute("data-quitar-deuda");
+      state.deudas = state.deudas.filter(function (d) { return String(d.id) !== idd; });
+      save();
+      renderGastos();
+      return;
+    }
     var q = e.target.closest("[data-quitar-gasto]");
     if (!q) return;
     var id = q.getAttribute("data-quitar-gasto");
@@ -2078,11 +2429,18 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var ej = { predial: ["1,800", "anual", "0"], luz: ["900", "bimestral", "1"], agua: ["250", "mensual"], gas: ["450", "mensual"], internet: ["400", "mensual"], celular: ["200", "mensual"],
       super: ["1,200", "semanal"], fuera: ["600", "mensual"], medicinas: ["800", "mensual"], consultas: ["400", "mensual"], gasolina: ["350", "semanal"],
       "servicio-auto": ["2,500", "semestral", "3"], "seguro-auto": ["7,500", "anual", "8"], tenencia: ["1,200", "anual", "2"], ropa: ["400", "mensual"], higiene: ["350", "mensual"],
-      salidas: ["600", "mensual"], suscripciones: ["300", "mensual"], mascotas: ["300", "mensual"] };
+      salidas: ["600", "mensual"], suscripciones: ["300", "mensual"], mascotas: ["300", "mensual"],
+      estetica: ["350", "mensual"], arreglo: ["250", "mensual"], "otras-subs": ["99", "mensual"], verificacion: ["700", "semestral", "4"], reparaciones: ["3,000", "anual", "4"] };
+    var pagoCasa = { renta: "4,500", hipoteca: "3,800", familia: "1,000" }[state.vivienda];
+    if (pagoCasa) ej.renta = [pagoCasa, "mensual"];
     state.gastos = {};
     for (var k in ej) { state.gastos[k] = { monto: ej[k][0], frec: ej[k][1] }; if (ej[k][2] != null) state.gastos[k].mes = ej[k][2]; }
-    GASTOS_BASE.forEach(function (g) { if (!state.gastos[g.id]) state.gastos[g.id] = { monto: "", frec: g.frec, no: true }; });
+    var varia = { luz: "1,100", super: "1,400" };
+    for (var kv in varia) { state.gastos[kv].variable = true; state.gastos[kv].montoMax = varia[kv]; }
+    gastosBase().forEach(function (g) { if (!state.gastos[g.id]) state.gastos[g.id] = { monto: "", frec: g.frec, no: true }; });
     state.gastosExtra = [nuevoGastoExtra({ label: "Regalos y cena de Navidad", rubro: "familia", monto: "4,000", frec: "anual", mes: "11" })];
+    state.deudas = [nuevaDeuda({ tipo: "msi", detalle: "Refrigerador a meses", saldo: "3,600", pago: "600" })];
+    state.sinDeudas = false;
     state.pctTocado = false; state.pctReales = false; state.planModo = "real";
     save();
     renderGastos();
@@ -2094,7 +2452,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       clearTimeout(borrarTimer);
       b.removeAttribute("data-armado");
       b.textContent = "Borrar mi hoja de gastos";
-      state.gastos = {}; state.gastosExtra = [];
+      state.gastos = {}; state.gastosExtra = []; state.deudas = []; state.sinDeudas = false;
       state.pct = presetMes(tipoObj()); state.pctTocado = false; state.pctReales = false; state.planModo = "real"; state.provisionMes = 0; state.realNota = "";
       mostrar[3] = false;
       save();
@@ -2125,10 +2483,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       if (queda >= 0) { est.setAttribute("data-e", "ok"); est.textContent = "De su dinero de cada mes (" + money(base) + "), después de estos gastos le quedan " + money(queda) + " al mes para ahorro, su objetivo y lo que no anotó."; }
       else { est.setAttribute("data-e", "ojo"); est.textContent = "Estos gastos suman " + money(rg.mes) + " al mes, " + money(-queda) + " más que su dinero de cada mes (" + money(base) + "). En los siguientes pasos le ayudamos a ajustar."; }
     } else est.hidden = true;
-    var faltan = erroresPaso3(), total = GASTOS_BASE.length + state.gastosExtra.length, listos = total - faltan.length;
+    pintarDeudas();
+    var faltan = erroresPaso3(), total = gastosBase().length + state.gastosExtra.length + 1, listos = total - faltan.length;
     $("#g-prog-num").textContent = listos + " de " + total;
     $("#g-prog-barra").style.width = (total ? listos / total * 100 : 0) + "%";
-    var tocados = GASTOS_BASE.some(function (g) { var v = state.gastos[g.id]; return v && (v.no || String(v.monto || "").trim()); });
+    var tocados = gastosBase().some(function (g) { var v = state.gastos[g.id]; return v && (v.no || String(v.monto || "").trim()); });
     $("#btn-borrar-gastos").hidden = !tocados && !state.gastosExtra.length;
     $("#btn-ejemplo-gastos").hidden = tocados;
     pintarErrores(3);
@@ -2206,7 +2565,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       p.tiene = parseMonto(state.ahorroEmerg);
       p.aporteMes = c.mesDe("ahorro"); p.aporteExtra = c.anioDe("emergencias");
     } else if (c.t === "deudas") {
-      p.meta = parseMonto(state.deudaTotal); p.tiene = 0;
+      p.meta = totalDeudas(); p.tiene = 0;
       p.aporteMes = c.mesDe("deudas"); p.aporteExtra = c.anioDe("deudas");
     } else {
       p.meta = parseMonto(state.meta); p.tiene = parseMonto(state.metaTiene);
@@ -2245,15 +2604,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var r = c.inf / 100, f1 = 1 + r, f5 = Math.pow(1 + r, 5);
     var filas = [];
     if (c.base > 0) filas.push({ nombre: "Sus gastos de cada mes", hoy: c.repMes, uno: c.repMes * f1, cinco: c.repMes * f5 });
+    var renta = state.vivienda === "renta" && c.gastos.hay ? itemGasto(c, "renta") : null;
+    if (renta) filas.push({ nombre: "Su renta (al mes)", hoy: renta.mes, uno: renta.mes * f1, cinco: renta.mes * f5 });
     var grandes = c.gastos.items.filter(function (x) { return x.grande; });
     grandes.forEach(function (x) { filas.push({ nombre: x.label + " (" + fGasto(x.frec).label.toLowerCase() + ")", hoy: x.monto, uno: x.monto * f1, cinco: x.monto * f5 }); });
     if (c.objetivo && c.objetivo.tipo === "meta" && c.objetivo.meta > 0) filas.push({ nombre: "Su objetivo: " + c.objetivo.titulo, hoy: c.objetivo.meta, uno: c.objetivo.meta * f1, cinco: c.objetivo.meta * f5 });
     var consejos = [];
     consejos.push("Con una inflación de " + fmtPct(c.inf) + " al año, lo que hoy cuesta $1,000 costará unos " + money(1000 * f1) + " dentro de un año y unos " + money(1000 * f5) + " en 5 años.");
     if (c.base > 0) consejos.push("Para mantener su nivel de vida, el próximo año necesitará unos " + money(c.repMes * f1) + " al mes en lugar de " + money(c.repMes) + ". Muchas pensiones se ajustan una vez al año con la inflación: cuando cambie la suya, actualice este plan.");
-    if (c.gastos.grandes > 0) consejos.push("Sus pagos grandes del año también suben: para el próximo año calcule unos " + money(c.gastos.grandes * f1) + " en lugar de " + money(c.gastos.grandes) + ". En muchos estados y municipios hay descuento por pagar el predial y la tenencia o refrendo en los primeros meses del año.");
-    else consejos.push("El predial, la tenencia o refrendo y los seguros suben cada año. En muchos estados y municipios hay descuento por pagarlos en los primeros meses del año.");
-    consejos.push("Al renovar el seguro del coche o de gastos médicos, compare precios con otras aseguradoras: suelen subir cada año.");
+    if (c.gastos.grandes > 0) consejos.push("Sus pagos grandes del año también suben: para el próximo año calcule unos " + money(c.gastos.grandes * f1) + " en lugar de " + money(c.gastos.grandes) + "." + (inicioAnio() ? " En muchos estados y municipios hay descuento por pagar " + inicioAnio() + " en los primeros meses del año." : ""));
+    else consejos.push(capital(lista((inicioAnio() ? [inicioAnio()] : []).concat(["los seguros"]))) + " suben cada año." + (inicioAnio() ? " En muchos estados y municipios hay descuento por pagar " + inicioAnio() + " en los primeros meses del año." : ""));
+    if (state.vivienda === "renta") consejos.push("La renta suele subir cada año al renovar el contrato, más o menos lo que sube la inflación. Si su ingreso no sube igual, la renta se lleva cada vez una parte mayor.");
+    if (state.vivienda === "hipoteca") consejos.push("Si su hipoteca es de banco a tasa fija, el pago no sube: con la inflación, pesa cada vez menos. Los créditos del Infonavit en veces salario mínimo no se actualizaron en 2025 ni en 2026, pero revise cada año su estado de cuenta. Los créditos en UMA, como algunos del Fovissste, sí suben cada año.");
+    if (state.vivienda === "propia") consejos.push("Su casa no tiene renta que suba, pero el predial, el mantenimiento y las reparaciones sí suben con la inflación.");
+    consejos.push(state.coche === "no" ? "Al renovar el seguro de gastos médicos, compare precios con otras aseguradoras: suele subir cada año." : "Al renovar el seguro del coche o de gastos médicos, compare precios con otras aseguradoras: suelen subir cada año. La tenencia o refrendo y la verificación también se actualizan cada año.");
     consejos.push("El dinero guardado en efectivo pierde valor con la inflación. Para su ahorro, busque una opción segura que pague intereses por arriba de la inflación, como Cetes Directo o una cuenta de ahorro con rendimiento.");
     return { tasa: c.inf, filas: filas, consejos: consejos };
   }
@@ -2289,12 +2653,38 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var modo = c.gastos.hay ? "hoja" : "presupuesto";
     if (modo === "hoja") {
       c.gastos.items.forEach(function (x) {
-        if (!necesitaMes(x.frec)) todos("gas", x.mes);
+        if (x.deuda && x.meses) {
+          /* La deuda se paga solo hasta que se termina */
+          var saldo = x.saldo || x.monto * x.meses;
+          meses.forEach(function (m) { if (m.i < x.meses) m.gas += Math.min(x.monto, Math.max(0, saldo - m.i * x.monto)); });
+          if (x.meses <= 12) meses[x.meses - 1].eventos.push({ lado: "fin", nombre: x.label, monto: x.monto });
+        }
+        else if (!necesitaMes(x.frec)) todos("gas", x.mes);
         else evento("gas", x.label, x.monto, x.frec, x.mesPago, x.anio, esGrande(x.frec));
       });
     } else {
       todos("gas", c.rubros.filter(function (r) { return r.id !== "ahorro" && r.id !== "meta"; }).reduce(function (a, r) { return a + r.mes; }, 0));
     }
+    /* Lo que podría sobrar de más en cada mes si las cantidades que cambian salen a su favor */
+    meses.forEach(function (m) { m.arriba = 0; });
+    function arribaTodos(v) { meses.forEach(function (m) { m.arriba += v; }); }
+    function arribaEvento(dif, frec, mes, anualDif) {
+      if (mes === "" || mes == null) { if (frec === "unica") meses[0].arriba += dif; else arribaTodos(anualDif / 12); return; }
+      var hecho = false;
+      meses.forEach(function (m) { if (frec === "unica" && hecho) return; if (ocurre(frec, mes, m.cm)) { m.arriba += dif; hecho = true; } });
+    }
+    state.fuentes.forEach(function (f) {
+      var dif = montoMaxDe(f) - montoDe(f);
+      if (!f.variable || dif <= 0 || montoDe(f) <= 0) return;
+      if (esRegular(f)) arribaTodos(dif * freq(f.frecuencia).porAnio / 12);
+      else arribaEvento(dif, f.frecuencia, f.mes, dif * freq(f.frecuencia).porAnio);
+    });
+    if (modo === "hoja") c.gastos.items.forEach(function (x) {
+      var dif = x.montoMax - x.montoMin;
+      if (!x.variable || dif <= 0) return;
+      if (!necesitaMes(x.frec)) arribaTodos(dif * fGasto(x.frec).porAnio / 12);
+      else arribaEvento(dif, x.frec, x.mesPago, dif * fGasto(x.frec).porAnio);
+    });
     var inicial = parseMonto(state.saldoInicial), acum = inicial;
     meses.forEach(function (m) { m.saldo = m.ing - m.gas; acum += m.saldo; m.acum = acum; });
     function mediana(arr) { var s = arr.slice().sort(function (a, b) { return a - b; }), k = s.length; return k % 2 ? s[(k - 1) / 2] : (s[k / 2 - 1] + s[k / 2]) / 2; }
@@ -2349,13 +2739,30 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       })) + ". No gaste ese dinero de más: guárdelo para los meses pesados.";
       msgs.push({ e: "ok", txt: t4 }); recos.push(t4);
     }
+    var fines = [];
+    meses.forEach(function (m) { m.eventos.forEach(function (e) { if (e.lado === "fin") fines.push({ nombre: e.nombre, monto: e.monto, mes: m }); }); });
+    var mesesDeudas = c.gastos.items.filter(function (x) { return x.deuda; }).map(function (x) { return x.meses || 999; });
+    fines.forEach(function (f) {
+      var quedan = mesesDeudas.some(function (n) { return n > f.mes.i + 1; });
+      var dest = quedan ? "su siguiente deuda, para terminarla antes" : c.t === "meta" ? "su objetivo" : "su ahorro";
+      var sig = meses[f.mes.i + 1], t6 = "En " + minus(f.mes) + " hace el último pago de " + f.nombre + ". " + (sig ? "Desde " + MESES[sig.cm] : "Después") + " le quedan " + money(f.monto) + " libres al mes: no los gaste, páselos a " + dest + ".";
+      msgs.push({ e: "ok", txt: t6 }); recos.push(t6);
+    });
     if (pagos.length) recos.push("Sus pagos grandes de los próximos 12 meses suman " + money(totPagos) + ", unos " + money(totPagos / 12) + " al mes en promedio. Lo más fácil es apartar esa cantidad cada mes en una cuenta o sobre aparte.");
     pagos.filter(function (p) { return p.mes.i >= 1; }).slice(0, 3).forEach(function (p) {
       recos.push(p.nombre + ": vence en " + minus(p.mes) + ". Aparte " + money(p.aparte) + " al mes durante " + (p.meses === 1 ? "1 mes" : p.meses + " meses") + ".");
     });
+    var totArriba = meses.reduce(function (a, m) { return a + m.arriba; }, 0);
+    if (totArriba > 0.5) {
+      var vr = variablesResumen(), quienes = [];
+      if (vr.ingNombres.length) quienes.push("lo menos que recibe de " + lista(vr.ingNombres));
+      if (vr.gasNombres.length) quienes.push("lo más que paga de " + lista(vr.gasNombres));
+      var t5 = "Planeamos con el caso difícil: " + lista(quienes) + ". En un año bueno le podrían sobrar hasta " + money(totArriba) + " más (unos " + money(totArriba / 12) + " al mes). Si pasa, guárdelos.";
+      msgs.push({ e: "info", txt: t5 }); recos.push(t5);
+    }
     if (modo === "presupuesto") msgs.push({ e: "info", txt: "No llenó su hoja de gastos, así que el gasto de cada mes es el de su presupuesto y no aparecen sus pagos grandes. Llene la hoja (paso 3) y elija el mes de cada pago para ver sus meses pesados." });
     if (sinMes.length) msgs.push({ e: "info", txt: "Estos pagos no tienen mes y los repartimos parejo en el año: " + lista(sinMes) + ". Elija el mes de cada uno para verlo donde cae." });
-    return { meses: meses, modo: modo, inicial: inicial, minM: minM, pesados: pesados, holgados: holgados, pagos: pagos, totIng: totIng, totGas: totGas, totPagos: totPagos, msgs: msgs, recos: recos, sinMes: sinMes };
+    return { meses: meses, modo: modo, inicial: inicial, minM: minM, pesados: pesados, holgados: holgados, pagos: pagos, totIng: totIng, totGas: totGas, totPagos: totPagos, totArriba: totArriba, msgs: msgs, recos: recos, sinMes: sinMes };
   }
 
   function escalaFlujo(fl) {
@@ -2433,12 +2840,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         dv.appendChild(dt); dv.appendChild(dd); dl.appendChild(dv);
       });
       li.appendChild(dl);
+      if (m.arriba > 0.5) { var ar = document.createElement("p"); ar.className = "fm-arriba"; ar.textContent = "En un mes bueno, hasta " + money(m.arriba) + " más"; li.appendChild(ar); }
       if (m.eventos.length) {
         var ul = document.createElement("ul"); ul.className = "fm-ev";
         m.eventos.forEach(function (e) {
-          var it = document.createElement("li"); it.className = e.lado === "ing" ? "ing" : "gas";
-          var a = document.createElement("span"); a.textContent = e.nombre;
-          var b = document.createElement("span"); b.textContent = (e.lado === "ing" ? "+" : "−") + money(e.monto);
+          var it = document.createElement("li"); it.className = e.lado;
+          var a = document.createElement("span"); a.textContent = e.lado === "fin" ? "Último pago: " + e.nombre : e.nombre;
+          var b = document.createElement("span"); b.textContent = e.lado === "fin" ? "¡Termina!" : (e.lado === "ing" ? "+" : "−") + money(e.monto);
           it.appendChild(a); it.appendChild(b); ul.appendChild(it);
         });
         li.appendChild(ul);
@@ -2509,6 +2917,38 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (pq < 10) return { e: "ojo", txt: "Después de sus gastos de hoy le quedan " + money(k.queda) + " al mes (" + fmtPct(pq) + "). Es poco: lo recomendado es ahorrar al menos 10% de su ingreso (" + money(c.base * 0.1) + ")." };
     return { e: "ok", txt: "Después de sus gastos de hoy le quedan " + money(k.queda) + " al mes (" + fmtPct(pq) + ") para ahorro y su objetivo. Va bien." };
   }
+  function casaTexto() {
+    var v = porId(VIVIENDAS, state.vivienda), t = v ? v.titulo : "";
+    if (state.coche) t += (t ? " · " : "") + (state.coche === "si" ? "Con coche" : "Sin coche");
+    return t;
+  }
+  function itemGasto(c, key) { var r = null; c.gastos.items.forEach(function (x) { if (x.key === key) r = x; }); return r; }
+  function subsMes(c) { return c.gastos.items.filter(function (x) { return x.subs; }).reduce(function (a, x) { return a + x.mes; }, 0); }
+  /* Recomendaciones que cambian según la vivienda */
+  function recosCasa(c) {
+    var v = state.vivienda, r = [], f1 = 1 + c.inf / 100, pc = itemGasto(c, "renta"), pago = pc ? pc.mes : 0, pct = c.base > 0 ? pago / c.base * 100 : 0;
+    if (v === "renta") {
+      if (pago > 0) r.push("Su renta es de " + money(pago) + " al mes, " + fmtPct(pct) + " de su dinero de cada mes. Lo recomendado es no pasar de 30%" + (pct > 30 ? ": hoy le deja poco margen para lo demás." : ", y va bien."));
+      if (pago > 0) r.push("La renta suele subir al renovar el contrato. Para el próximo año calcule unos " + money(pago * f1) + " al mes y negocie el aumento con tiempo.");
+      r.push("Pida siempre contrato por escrito y recibo de cada pago. Si piensa mudarse, junte antes el depósito y el primer mes.");
+      r.push("Como no tiene casa propia, su fondo para emergencias es todavía más importante: le da tiempo si sube la renta o tiene que cambiarse.");
+    } else if (v === "hipoteca") {
+      if (pago > 0) r.push("Su hipoteca es de " + money(pago) + " al mes, " + fmtPct(pct) + " de su dinero de cada mes. Lo recomendado es no pasar de 30%" + (pct > 30 ? ": es un pago fijo, así que el ajuste tiene que venir de otros gastos." : ", y va bien."));
+      r.push("Pregunte a su banco o al Infonavit cuánto le falta y en qué fecha termina. Cuando termine, pase ese pago completo a su ahorro.");
+      r.push("Si recibe aguinaldo, un abono a capital reduce los años o el pago. Pida que el abono se aplique a capital.");
+      r.push("Revise que su crédito tenga seguro de daños y de vida: suele venir incluido en el pago.");
+    } else if (v === "propia") {
+      r.push("Su casa ya es suya: el dinero que otros pagan de renta usted lo puede ahorrar. Por eso le recomendamos apartar al menos " + rango("ahorro").min + "% cada mes.");
+      r.push("Aparte un poco cada mes para reparaciones (impermeabilizar, plomería, pintura). Así no le llegan de golpe.");
+      r.push("Pague el predial en enero o febrero: en muchos municipios hay descuento por pronto pago y otro para personas con credencial INAPAM o pensionadas.");
+      r.push("Considere un seguro de casa contra daños: suele costar poco al año comparado con una reparación grande.");
+    } else if (v === "familia") {
+      r.push("Como no paga renta, aproveche para ahorrar más: le recomendamos apartar al menos " + rango("ahorro").min + "% cada mes.");
+      if (pago > 0) r.push("Lo que da para la casa (" + money(pago) + " al mes) acuérdelo por adelantado, para que no cambie cada mes.");
+      r.push("Si algún día necesita mudarse, su fondo para emergencias le ayudará con el depósito y la primera renta.");
+    }
+    return r;
+  }
   function paresGastos(c) {
     var g = c.gastos, k = c.comp;
     var r = [["Gastos de cada mes", money(g.mes)], ["Pagos grandes del año", money(g.grandes) + (g.grandes > 0 ? " (" + money(g.grandes / 12) + " al mes)" : "")]];
@@ -2537,8 +2977,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (!c.comp && rub("salud").pct < 10) g1.push("Su gasto en salud es menor a 10%. Con la edad los gastos médicos suelen subir; si le es posible, aparte 10% o más.");
     if (!c.comp && rub("vivienda").pct > 35) g1.push("La vivienda se lleva más de 35% de su ingreso y deja poco margen para lo demás.");
     if (!c.comp && rub("deudas").pct > 20) g1.push("Más de 20% de su ingreso se va en deudas. Conviene liquidar primero la que cobra más intereses.");
+    var vrr = variablesResumen();
+    if (vrr.ingNombres.length) g1.push("Lo que recibe de " + lista(vrr.ingNombres) + " cambia. Planeamos con lo menos que recibe; los meses que reciba más, mande la diferencia a su ahorro.");
+    if (vrr.gasNombres.length) g1.push("Lo que paga de " + lista(vrr.gasNombres) + " cambia. Planeamos con lo más que paga; si un mes paga menos, guarde lo que sobra.");
     g1.push("Cuando reciba su pensión o su ingreso del mes, pague primero lo fijo (renta, luz, agua, deudas) y aparte su ahorro. Lo que queda es para el resto del mes.");
     grupos.push({ titulo: "Su dinero de cada mes", items: g1 });
+    var gc = recosCasa(c);
+    if (gc.length) grupos.push({ titulo: "Su casa", items: gc });
     if (c.flujo && c.flujo.recos.length) grupos.push({ titulo: "Su flujo del año", items: c.flujo.recos });
 
     if (c.comp) {
@@ -2550,12 +2995,17 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         .sort(function (a, b) { return (b.pctReal - b.v.rg.max) - (a.pctReal - a.v.rg.max); })
         .forEach(function (x) {
           if (x.id === "deudas") gg.push("Deudas: se lleva " + fmtPct(x.pctReal) + " de su ingreso; lo recomendado es " + x.rango + ". Concéntrese en liquidar primero la que cobra más interés.");
+          else if (x.id === "vivienda") gg.push("Vivienda: se lleva " + fmtPct(x.pctReal) + " de su ingreso (" + money(x.real) + " al mes); lo recomendado es " + x.rango + ". " + consejoTxt("vivienda", x.v, x.real, c.base));
           else gg.push(x.nombre + ": gasta " + fmtPct(x.pctReal) + " de su ingreso (" + money(x.real) + " al mes); lo recomendado es " + x.rango + ". Para empezar, baje unos " + money(-x.aj) + " al mes.");
         });
       k.filas.filter(function (x) { return x.v && x.v.e === "bajo"; }).forEach(function (x) {
         gg.push(x.nombre + ": gasta " + fmtPct(x.pctReal) + " de su ingreso; lo recomendado es " + x.rango + ". Si su dinero lo permite, súbale " + money(x.aj) + " al mes.");
       });
       if (k.quedaSugerida - k.queda > 0.5) gg.push("Con estos ajustes le quedarían " + money(Math.max(0, k.quedaSugerida)) + " al mes para ahorro, " + money(k.quedaSugerida - k.queda) + " más que hoy.");
+      var sm = subsMes(c);
+      if (sm > 0.5) gg.push("Sus suscripciones (gimnasio, Netflix, apps y similares) suman " + money(sm) + " al mes, " + money(sm * 12) + " al año. Revise su estado de cuenta: muchas se cobran solas. Cancele las que no usó el último mes.");
+      var ver = itemGasto(c, "verificacion");
+      if (ver) gg.push("La verificación del coche: hágala dentro de su periodo, según la terminación de su placa. La multa por no verificar a tiempo sale más cara.");
       var luz = state.gastos.luz;
       if (luz && parseMonto(luz.monto) > 0 && luz.frec === "bimestral") gg.push("El recibo de luz llega cada dos meses: aparte " + money(parseMonto(luz.monto) / 2) + " cada mes para pagarlo sin apuros.");
       if (c.cobertura) gg.push(c.cobertura.txt);
@@ -2569,7 +3019,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     }
     c.fuentes.forEach(function (x) {
       if (x.f.frecuencia === "bimestral" && x.destino === "diario") g2.push(x.nombre + ": como llega cada dos meses, cuando lo reciba guarde la mitad (" + money(x.monto / 2) + ") para el segundo mes.");
-      if (x.f.tipo === "aguinaldo") g2.push(x.nombre + ": decida antes de recibirlo a qué va cada parte. Reserve lo de enero, como el predial y la tenencia o refrendo, que suelen tener descuento si se pagan a inicio de año.");
+      if (x.f.tipo === "aguinaldo") g2.push(x.nombre + ": decida antes de recibirlo a qué va cada parte." + (inicioAnio() ? " Reserve lo de enero, como " + inicioAnio() + ", que suelen tener descuento si se pagan a inicio de año." : " Reserve primero lo de los pagos grandes que vienen."));
     });
     if (!c.extra) g2.push("Si recibe aguinaldo, pagos cada dos meses o algún dinero de vez en cuando, agréguelo en el paso 1 para planear en qué usarlo.");
     grupos.push({ titulo: "Su dinero extra", items: g2 });
@@ -2643,6 +3093,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (state.nombre.trim()) meta.push("Preparado para " + state.nombre.trim());
     meta.push(fechaLarga());
     if (c.objetivo) meta.push("Objetivo: " + c.objetivo.titulo);
+    if (casaTexto()) meta.push(casaTexto());
     $("#res-meta").textContent = meta.join(" · ");
     $("#res-mes").textContent = money(c.base);
     $("#res-extra").textContent = money(c.extra);
@@ -2692,6 +3143,22 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       celda(tt, "Total"); celda(tt, money(c.comp.totReal), "num"); celda(tt, c.base > 0 ? fmtPct(c.comp.totReal / c.base * 100) : "", "num"); celda(tt, "");
       celda(tt, money(c.comp.totPlan), "num"); celda(tt, moneySigno(c.comp.totPlan - c.comp.totReal), "num");
       tb.appendChild(tt);
+    }
+    var rd = $("#res-deudas"); rd.textContent = "";
+    var fd = filasDeudas();
+    if (fd.length) {
+      var hd = document.createElement("h4"); hd.textContent = "Sus deudas"; rd.appendChild(hd);
+      var wd = document.createElement("div"); wd.className = "tabla-wrap";
+      var td2 = document.createElement("table"); td2.className = "comp";
+      td2.innerHTML = '<thead><tr><th scope="col">Deuda</th><th scope="col" class="num">Debe hoy</th><th scope="col" class="num">Paga al mes</th><th scope="col">Termina</th></tr></thead>';
+      var bd = document.createElement("tbody");
+      fd.forEach(function (x) { var tr = document.createElement("tr"); celda(tr, x[0]); celda(tr, x[1], "num"); celda(tr, x[2], "num"); celda(tr, x[3]); bd.appendChild(tr); });
+      var ttd = document.createElement("tr"); ttd.className = "total";
+      celda(ttd, "Total"); celda(ttd, money(totalDeudas()), "num"); celda(ttd, money(pagoDeudas()), "num"); celda(ttd, "");
+      bd.appendChild(ttd);
+      td2.appendChild(bd); wd.appendChild(td2); rd.appendChild(wd);
+      var nd = document.createElement("p"); nd.className = "ayuda"; nd.textContent = "Sin contar intereses. Las tarjetas y préstamos cobran intereses, así que en la práctica tardaría un poco más si solo paga lo de hoy.";
+      rd.appendChild(nd);
     }
 
     // Extra
@@ -2785,12 +3252,16 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   var mostrar = { 1: false, 2: false, 3: false };
   function erroresPaso1() {
     var errs = [];
+    if (!state.vivienda) errs.push({ casa: "vivienda", txt: "Díganos si paga renta o hipoteca." });
+    if (!state.coche) errs.push({ casa: "coche", txt: "Díganos si tiene coche." });
     state.fuentes.forEach(function (f, i) {
       var falta = [];
       if (!f.tipo) falta.push("el tipo de ingreso");
-      if (montoDe(f) <= 0) falta.push("cuánto recibe");
+      if (montoDe(f) <= 0) falta.push(f.variable ? "lo menos que recibe" : "cuánto recibe");
+      if (f.variable && parseMonto(f.montoMax) <= 0) falta.push("lo más que recibe");
       if (necesitaMes(f.frecuencia) && f.mes === "") falta.push("en qué mes llega");
       if (falta.length) errs.push({ id: f.id, txt: "Ingreso " + (i + 1) + ": falta " + lista(falta) + "." });
+      else if (f.variable && parseMonto(f.montoMax) < montoDe(f)) errs.push({ id: f.id, txt: "Ingreso " + (i + 1) + ": lo más que recibe debe ser mayor que lo menos." });
     });
     return errs;
   }
@@ -2799,22 +3270,33 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (!o) return [{ txt: "Elija su objetivo principal." }];
     if (o.id === "otro" && !state.objOtro.trim()) errs.push({ txt: "Escriba cuál es su objetivo." });
     if (t === "meta" && !parseMonto(state.meta)) errs.push({ txt: "Escriba cuánto dinero necesita para su objetivo." });
-    if (t === "deudas" && !parseMonto(state.deudaTotal)) errs.push({ txt: "Escriba cuánto debe en total." });
     return errs;
   }
   function erroresPaso3() {
     var faltan = [];
-    GASTOS_BASE.forEach(function (g) {
+    gastosBase().forEach(function (g) {
       var v = state.gastos[g.id] || {};
+      if (g.id === "renta" && (state.vivienda === "renta" || state.vivienda === "hipoteca") && (v.no || parseMonto(v.monto) <= 0)) { faltan.push({ key: g.id }); return; }
       if (v.no) return;
       var n = parseMonto(v.monto), frec = v.frec || g.frec, cero = String(v.monto || "").trim() === "0";
+      if (v.variable) {
+        var mx = parseMonto(v.montoMax);
+        if (mx <= 0 || mx < n) faltan.push({ key: g.id });
+        else if (necesitaMes(frec) && mesGastoBase(g, v) === "") faltan.push({ key: g.id });
+        return;
+      }
       if (n <= 0 && !cero) faltan.push({ key: g.id });
       else if (n > 0 && necesitaMes(frec) && mesGastoBase(g, v) === "") faltan.push({ key: g.id });
     });
     state.gastosExtra.forEach(function (x) {
-      if (!x.label.trim() || parseMonto(x.monto) <= 0) faltan.push({ key: "x" + x.id });
+      var tope = x.variable ? parseMonto(x.montoMax) : parseMonto(x.monto);
+      if (!x.label.trim() || tope <= 0 || (x.variable && tope < parseMonto(x.monto))) faltan.push({ key: "x" + x.id });
       else if (necesitaMes(x.frec) && !x.mes) faltan.push({ key: "x" + x.id });
     });
+    var deudasMal = state.sinDeudas
+      ? tipoObj() === "deudas"
+      : !state.deudas.length || state.deudas.some(function (d) { return !d.tipo || parseMonto(d.saldo) <= 0 || parseMonto(d.pago) <= 0; });
+    if (deudasMal) faltan.push({ key: "deudas" });
     return faltan;
   }
   function errores(n) { return n === 1 ? erroresPaso1() : n === 2 ? erroresPaso2() : n === 3 ? erroresPaso3() : []; }
@@ -2825,27 +3307,37 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var errs = errores(n), el;
     if (n === 1) {
       el = $("#err-ingreso");
-      $$("#fuentes .fuente").forEach(function (card) { card.classList.toggle("falta", mostrar[1] && errs.some(function (e) { return String(e.id) === card.getAttribute("data-id"); })); });
+      $$("#fuentes .fuente").forEach(function (card) { card.classList.toggle("falta", mostrar[1] && errs.some(function (e) { return e.id != null && String(e.id) === card.getAttribute("data-id"); })); });
+      $("#c-vivienda").classList.toggle("falta", mostrar[1] && errs.some(function (e) { return e.casa === "vivienda"; }));
+      $("#c-coche").classList.toggle("falta", mostrar[1] && errs.some(function (e) { return e.casa === "coche"; }));
     } else if (n === 2) {
       el = $("#err-obj");
     } else {
       el = $("#err-gastos");
-      $$("#gastos .gasto").forEach(function (row) { row.classList.toggle("falta", mostrar[3] && errs.some(function (e) { return e.key === row.getAttribute("data-row"); })); });
+      $$("#gastos [data-row]").forEach(function (row) { row.classList.toggle("falta", mostrar[3] && errs.some(function (e) { return e.key === row.getAttribute("data-row"); })); });
     }
     if (!el) return;
     if (!mostrar[n] || !errs.length) { el.hidden = true; return; }
     el.hidden = false;
-    if (n === 3) el.textContent = "Le " + (errs.length === 1 ? "falta 1 gasto" : "faltan " + errs.length + " gastos") + " por contestar. Escriba cuánto paga o marque «No lo pago». Lo que no paga cada mes necesita su mes. Están marcados en rojo.";
+    if (n === 3) {
+      var soloDeudas = errs.length === 1 && errs[0].key === "deudas", hayDeudas = errs.some(function (e) { return e.key === "deudas"; });
+      var txtDeudas = state.sinDeudas && tipoObj() === "deudas"
+        ? "Su objetivo es salir de deudas: anote al menos una deuda."
+        : "En Deudas, anote de cada una qué deuda es, cuánto debe y cuánto paga al mes, o marque «No tengo deudas».";
+      el.textContent = soloDeudas ? txtDeudas
+        : "Le " + (errs.length === 1 ? "falta 1 gasto" : "faltan " + errs.length + " gastos") + " por contestar. Escriba cuánto paga o marque «No lo pago». Lo que no paga cada mes necesita su mes, y si la cantidad cambia, escriba lo más que paga." + (hayDeudas ? " " + txtDeudas : "") + " Están marcados en rojo.";
+    }
     else el.textContent = errs.map(function (e) { return e.txt; }).join(" ");
   }
   function siguiente(desde, hacia) {
     if (errores(desde).length) {
       mostrar[desde] = true;
       pintarErrores(desde);
-      var primero = desde === 1 ? $("#fuentes .fuente.falta") : desde === 3 ? $("#gastos .gasto.falta") : $("#err-obj");
+      var primero = desde === 1 ? $('[data-panel="1"] .falta') : desde === 3 ? $("#gastos .falta") : $("#err-obj");
       if (primero) {
         primero.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
         var inp = primero.querySelector ? primero.querySelector("input:not([disabled]):not([type=checkbox]), select:not([disabled])") : null;
+        if (inp && inp.type === "radio") inp = primero.querySelector("input:checked") || inp;
         if (inp) { try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } }
       }
       return;
@@ -3057,6 +3549,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var meta = [];
     if (nombre) meta.push("Preparado para: " + nombre);
     meta.push("Fecha: " + fechaLarga());
+    if (casaTexto()) meta.push(casaTexto());
     parrafo(meta.join("   ·   "), 11.5, SOFT);
     if (c.objetivo) parrafo("Objetivo principal: " + c.objetivo.titulo, 11.5, ACC, "bold");
     y += 10;
@@ -3074,9 +3567,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     seccion("Mis ingresos", "Lo que llega cada mes se usa para los gastos fijos del día a día. Lo que llega cada dos meses, una vez al año o una sola vez se usa para ahorro, su objetivo y los pagos grandes del año.");
     var colsI = [{ t: "Fuente", x: M, w: 180 }, { t: "Cada cuándo", x: M + 192 }, { t: "Cantidad", x: M + 362, a: "right" }, { t: "Al mes", x: M + 437, a: "right" }, { t: "Al año", x: W - M, a: "right", b: true }];
     var filasI = c.fuentes.map(function (x) {
-      return { c: [x.nombre, x.q.label, money(x.monto), money(x.mes), money(x.anio)],
+      var varia = x.f.variable && montoMaxDe(x.f) > x.monto;
+      return { c: [x.nombre, x.q.label, varia ? money(x.monto) + " a " + money(montoMaxDe(x.f)) : money(x.monto), money(x.mes), money(x.anio)],
         sub: (x.tipo && (x.f.detalle || "").trim() ? x.tipo.label + " · " : "") + (x.seguro ? "Llega seguro" : "Puede variar") + " · " + (x.destino === "diario" ? "Para el día a día" : "Para ahorro y metas") +
-          (necesitaMes(x.f.frecuencia) && x.f.mes !== "" ? " · Llega en " + textoMeses(x.f.frecuencia, x.f.mes) : ""),
+          (necesitaMes(x.f.frecuencia) && x.f.mes !== "" ? " · Llega en " + textoMeses(x.f.frecuencia, x.f.mes) : "") +
+          (varia ? " · Cantidad que cambia: planeamos con lo menos" : ""),
         sw: x.destino === "diario" ? ACC : [204, 154, 38] };
     });
     filasI.push({ c: ["Total para el día a día", "", "", money(c.base), money(c.base * 12)], bold: true, color: ACC });
@@ -3094,7 +3589,9 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var its = c.gastos.items.filter(function (x) { return x.rubro === r.id; });
         if (!its.length) return;
         its.forEach(function (x) {
-          filasG.push({ c: [x.label, fGasto(x.frec).label, money(x.monto), x.grande ? "-" : money(x.mes), money(x.anio)], sw: hex(r.pdf), sub: r.nombre + (x.grande ? " · Pago grande del año" : "") + (necesitaMes(x.frec) && x.mesPago !== "" ? " · " + capital(textoMeses(x.frec, x.mesPago)) : "") });
+          var vg = x.variable && x.montoMax > x.montoMin;
+          filasG.push({ c: [x.label, fGasto(x.frec).label, vg ? money(x.montoMin) + " a " + money(x.montoMax) : money(x.monto), x.grande ? "-" : money(x.mes), money(x.anio)], sw: hex(r.pdf),
+            sub: r.nombre + (x.deuda ? " · Debe " + money(x.saldo) + (x.meses ? " · termina en " + fmtMeses(x.meses) : "") : "") + (x.grande ? " · Pago grande del año" : "") + (necesitaMes(x.frec) && x.mesPago !== "" ? " · " + capital(textoMeses(x.frec, x.mesPago)) : "") + (vg ? " · Cambia: planeamos con lo más" : "") });
         });
       });
       filasG.push({ c: ["Gastos de cada mes", "", "", money(c.gastos.mes), money(c.gastos.mes * 12)], bold: true, color: ACC });
@@ -3112,6 +3609,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         if (x.v) {
           sub = x.v.txt;
           if (x.id === "deudas" && x.v.e !== "bien") sub += ": liquide primero la de más interés";
+          else if (x.id === "vivienda" && x.v.e !== "bien") sub += ": pago fijo, ajuste en otros gastos";
           else if (x.aj < -0.5) sub += ": bajar unos " + money(-x.aj) + " al mes";
           else if (x.aj > 0.5) sub += ": subir " + money(x.aj) + " al mes";
         }
@@ -3119,6 +3617,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       });
       filasC.push({ c: ["Total", money(c.comp.totReal), c.base > 0 ? fmtPct(c.comp.totReal / c.base * 100) : "", "", money(c.comp.totPlan), signo(c.comp.totPlan - c.comp.totReal)], bold: true });
       tabla(colsC, filasC);
+    }
+    var fdP = filasDeudas();
+    if (fdP.length) {
+      seccion("Mis deudas", "Cada deuda con lo que debe hoy, lo que paga al mes y cuándo termina con ese pago, sin contar intereses.", 120);
+      var fd2 = fdP.map(function (x) { return { c: x, sw: hex("#8E7563") }; });
+      fd2.push({ c: ["Total", money(totalDeudas()), money(pagoDeudas()), ""], bold: true });
+      tabla([{ t: "Deuda", x: M, w: 180 }, { t: "Debe hoy", x: M + 245, a: "right" }, { t: "Paga al mes", x: M + 330, a: "right", b: true }, { t: "Termina", x: M + 345 }], fd2);
+      parrafo("Las tarjetas y préstamos cobran intereses: si solo paga lo de hoy, tardará un poco más. Pague primero la que cobra más interés y, cuando termine una, pase ese pago a la siguiente.", 10.5, SOFT);
     }
 
     /* Flujo del año */
@@ -3179,6 +3685,9 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var partes = [ESTADO_TXT[m.estado] || ""];
         if (en.length) partes.push("Entra: " + en.join(", "));
         if (sa.length) partes.push("Sale: " + sa.join(", "));
+        var fn = m.eventos.filter(function (e) { return e.lado === "fin"; }).map(function (e) { return e.nombre; });
+        if (fn.length) partes.push("Último pago: " + fn.join(", "));
+        if (m.arriba > 0.5) partes.push("Mes bueno: hasta " + money(m.arriba) + " más");
         return {
           c: [m.nombre, money(m.ing), money(m.gas), signo(m.saldo), money(m.acum)],
           sub: partes.filter(Boolean).join(" · "),
@@ -3338,6 +3847,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
      Inicio
      ========================================================= */
   renderOps();
+  renderCasa();
   renderFuentes();
   goTo(state.paso, false);
 })();
