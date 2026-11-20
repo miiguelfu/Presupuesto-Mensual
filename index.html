@@ -296,6 +296,7 @@ legend { padding: 0; margin: 0 0 0.875rem; font-weight: 700; font-size: 1.125rem
 .g-checks { display: flex; flex-wrap: wrap; gap: 0 1.125rem; }
 .g-monto, .g-max { display: grid; gap: 0.2rem; min-width: 0; }
 .g-ayuda { font-size: 0.9rem; color: var(--ink-soft); }
+.gasto .g-aparte { grid-column: 1 / -1; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
 .mini-lbl { font-size: 0.85rem; font-weight: 700; color: var(--ink-soft); }
 .gasto-x .campo-var { grid-column: 1 / -1; }
 .fm-arriba { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
@@ -312,7 +313,6 @@ legend { padding: 0; margin: 0 0 0.875rem; font-weight: 700; font-size: 1.125rem
 .deuda-calc { font-weight: 700; color: var(--accent); }
 .g-deudas.falta { border-color: var(--bad-ink); box-shadow: inset 5px 0 0 var(--bad-ink); background: color-mix(in srgb, var(--bad-ink) 4%, var(--surface)); }
 .g-deudas .btn-agregar { justify-self: start; }
-.fm-ev li.fin span:last-child { color: var(--accent); }
 @media (max-width: 560px) { .deuda .fila { grid-template-columns: 1fr; } }
 .estado { padding: 0.875rem 1.125rem; border-radius: 10px; font-weight: 700; }
 .estado[data-e="ok"] { background: var(--accent-soft); color: var(--accent); }
@@ -731,11 +731,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     <div class="panel-head">
       <p class="cuenta">Paso 4 de 7</p>
       <h2 id="h-paso4" tabindex="-1">Su dinero mes por mes</h2>
-      <p>Aquí ve cuánto entra y cuánto sale en cada uno de los próximos 12 meses, con el aguinaldo, el predial, los seguros y cada pago en el mes en que cae. Así sabe qué meses vienen pesados y cuánto apartar antes.</p>
+      <p>Aquí ve un año completo, de enero a diciembre: cuánto entra y cuánto sale cada mes, con el aguinaldo, el predial, los seguros y cada pago en el mes en que cae. Así sabe qué meses vienen pesados y cuánto apartar antes.</p>
     </div>
 
     <div class="campo campo-saldo">
-      <label for="saldo-inicial">¿Cuánto dinero tiene hoy para sus gastos? <span class="ayuda">(opcional)</span></label>
+      <label for="saldo-inicial">¿Con cuánto dinero empieza el año? <span class="ayuda">(opcional: lo que tiene guardado para sus gastos en enero)</span></label>
       <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="saldo-inicial" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
       <p class="ayuda">Lo que tiene en su cuenta o en efectivo, sin contar su ahorro para emergencias.</p>
     </div>
@@ -1388,7 +1388,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function filasDeudas() {
     return deudasValidas().map(function (d) {
       var n = mesesDeuda(d);
-      return [nombreDeuda(d), money(parseMonto(d.saldo)), money(parseMonto(d.pago)), n ? fmtMeses(n) + (n <= 60 ? " (" + fechaEn(n - 1) + ")" : "") : "—"];
+      return [nombreDeuda(d), money(parseMonto(d.saldo)), money(parseMonto(d.pago)), n ? "En " + fmtMeses(n) : "—"];
     });
   }
   /* Meses que faltan con el pago de hoy, sin contar intereses */
@@ -2328,7 +2328,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       if (!d || !p) return;
       var n = mesesDeuda(d);
       p.hidden = !n;
-      if (n) p.textContent = "Con este pago termina en " + fmtMeses(n) + (n <= 36 ? ", hacia " + fechaEn(n - 1) : "") + ", sin contar intereses.";
+      if (n) p.textContent = "Con este pago termina en " + fmtMeses(n) + ", sin contar intereses.";
     });
   }
   function gastoExtraPorKey(key) { var id = key.slice(1); for (var i = 0; i < state.gastosExtra.length; i++) if (String(state.gastosExtra[i].id) === id) return state.gastosExtra[i]; return null; }
@@ -2427,15 +2427,15 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   });
   $("#btn-ejemplo-gastos").addEventListener("click", function () {
     var ej = { predial: ["1,800", "anual", "0"], luz: ["900", "bimestral", "1"], agua: ["250", "mensual"], gas: ["450", "mensual"], internet: ["400", "mensual"], celular: ["200", "mensual"],
-      super: ["1,200", "semanal"], fuera: ["600", "mensual"], medicinas: ["800", "mensual"], consultas: ["400", "mensual"], gasolina: ["350", "semanal"],
+      super: ["800", "semanal"], fuera: ["400", "mensual"], medicinas: ["800", "mensual"], consultas: ["400", "mensual"], gasolina: ["250", "semanal"],
       "servicio-auto": ["2,500", "semestral", "3"], "seguro-auto": ["7,500", "anual", "8"], tenencia: ["1,200", "anual", "2"], ropa: ["400", "mensual"], higiene: ["350", "mensual"],
       salidas: ["600", "mensual"], suscripciones: ["300", "mensual"], mascotas: ["300", "mensual"],
-      estetica: ["350", "mensual"], arreglo: ["250", "mensual"], "otras-subs": ["99", "mensual"], verificacion: ["700", "semestral", "4"], reparaciones: ["3,000", "anual", "4"] };
+      estetica: ["250", "mensual"], arreglo: ["150", "mensual"], "otras-subs": ["99", "mensual"], verificacion: ["700", "semestral", "4"], reparaciones: ["2,000", "anual", "4"] };
     var pagoCasa = { renta: "4,500", hipoteca: "3,800", familia: "1,000" }[state.vivienda];
     if (pagoCasa) ej.renta = [pagoCasa, "mensual"];
     state.gastos = {};
     for (var k in ej) { state.gastos[k] = { monto: ej[k][0], frec: ej[k][1] }; if (ej[k][2] != null) state.gastos[k].mes = ej[k][2]; }
-    var varia = { luz: "1,100", super: "1,400" };
+    var varia = { luz: "1,100", super: "1,000" };
     for (var kv in varia) { state.gastos[kv].variable = true; state.gastos[kv].montoMax = varia[kv]; }
     gastosBase().forEach(function (g) { if (!state.gastos[g.id]) state.gastos[g.id] = { monto: "", frec: g.frec, no: true }; });
     state.gastosExtra = [nuevoGastoExtra({ label: "Regalos y cena de Navidad", rubro: "familia", monto: "4,000", frec: "anual", mes: "11" })];
@@ -2475,7 +2475,17 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     });
     $("#g-tot-mes").textContent = money(rg.mes);
     $("#g-tot-grandes").textContent = money(rg.grandes);
-    $("#g-tot-grandes-sub").textContent = rg.grandes > 0 ? "al año (" + money(rg.grandes / 12) + " al mes)" : "al año";
+    $("#g-tot-grandes-sub").textContent = rg.grandes > 0 ? "al año · aparte unos " + money(rg.grandes / 12) + " al mes" : "al año";
+    var porKey = {};
+    rg.items.forEach(function (x) { porKey[x.key] = x; });
+    $$("#gastos .gasto[data-row]").forEach(function (row) {
+      var x = porKey[row.getAttribute("data-row")], el = row.querySelector(".g-aparte");
+      var ver = x && x.monto > 0 && necesitaMes(x.frec);
+      if (!ver) { if (el) el.hidden = true; return; }
+      if (!el) { el = document.createElement("p"); el.className = "g-aparte"; row.appendChild(el); }
+      el.hidden = false;
+      el.textContent = x.frec === "bimestral" ? "Llega cada dos meses: aparte unos " + money(aparteMes(x)) + " al mes." : "Para tenerlo listo, aparte unos " + money(aparteMes(x)) + " al mes.";
+    });
     var est = $("#g-estado");
     if (rg.hay && base > 0) {
       var queda = base - rg.mes;
@@ -2533,6 +2543,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     c.emergencia = planEmergencia(c);
     c.infl = planInflacion(c);
     c.flujo = flujoAnual(c);
+    c.grandesPlan = c.flujo.grandes = planGrandes(c);
     c.recos = recomendaciones(c);
     return c;
   }
@@ -2586,7 +2597,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var deu = p.tipo === "deudas", verbo = deu ? "terminaría de pagar" : "lo lograría";
     if (p.estado === "sin-meta") return { e: "ojo", txt: (deu ? "Escriba en el paso 2 cuánto debe en total" : "Escriba en el paso 2 cuánto necesita") + " para calcular en cuánto tiempo lo logra." };
     if (p.estado === "logrado") return { e: "ok", txt: "¡Ya tiene lo necesario para su objetivo!" };
-    if (p.estado === "a-tiempo") return { e: "ok", txt: "Va bien. Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", hacia " + fechaEn(p.meses) + ", dentro del plazo que eligió." };
+    if (p.estado === "a-tiempo") return { e: "ok", txt: "Va bien. Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", dentro del plazo que eligió." };
     if (p.meses === null) return { e: "ojo", txt: "Su plan todavía no aparta dinero para este objetivo. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.necesita) + " al mes. Súbale a los rubros marcados como «Su objetivo» en los pasos 5 y 6." };
     return { e: "ojo", txt: "Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", más tiempo del que quería. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.faltaMes) + " más al mes." };
   }
@@ -2596,7 +2607,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     e.falta3 = Math.max(0, e.meta3 - e.tiene);
     e.meses = e.aporte > 0.5 ? Math.max(1, Math.ceil(e.falta3 / e.aporte)) : null;
     if (e.falta3 <= 0) e.msg = { e: "ok", txt: "Ya tiene al menos 3 meses de gastos indispensables. Siga hasta llegar a 6 meses (" + money(e.meta6) + ")." };
-    else if (e.meses) e.msg = { e: e.meses <= 24 ? "ok" : "ojo", txt: "Con lo que aparta, juntaría 3 meses de gastos indispensables en " + fmtMeses(e.meses) + ", hacia " + fechaEn(e.meses) + "." };
+    else if (e.meses) e.msg = { e: e.meses <= 24 ? "ok" : "ojo", txt: "Con lo que aparta, juntaría 3 meses de gastos indispensables en " + fmtMeses(e.meses) + "." };
     else e.msg = { e: "ojo", txt: "Su plan no aparta dinero para emergencias. Le sugerimos destinar al menos 5% de su ingreso de cada mes o una parte de su dinero extra." };
     return e;
   }
@@ -2623,21 +2634,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   }
 
   /* =========================================================
-     Flujo del año: los próximos 12 meses, mes por mes
+     Flujo del año: un año típico, de enero a diciembre (no depende de la fecha de hoy)
      ========================================================= */
   function flujoAnual(c) {
-    var hoy = new Date(), meses = [], sinMes = [];
-    for (var i = 0; i < 12; i++) {
-      var d = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
-      meses.push({ i: i, cm: d.getMonth(), anio: d.getFullYear(), nombre: capital(MESES[d.getMonth()]) + " " + d.getFullYear(), ing: 0, gas: 0, eventos: [] });
-    }
+    var meses = [], sinMes = [];
+    for (var i = 0; i < 12; i++) meses.push({ i: i, cm: i, nombre: capital(MESES[i]), ing: 0, gas: 0, eventos: [] });
     function todos(lado, v) { meses.forEach(function (m) { m[lado] += v; }); }
     function evento(lado, nombre, monto, frec, mes, anual, grande) {
-      if (mes === "" || mes == null) {
-        if (frec === "unica") { meses[0][lado] += monto; meses[0].eventos.push({ lado: lado, nombre: nombre, monto: monto, grande: grande }); }
-        else { todos(lado, anual / 12); sinMes.push(nombre); }
-        return;
-      }
+      if (mes === "" || mes == null) { todos(lado, anual / 12); sinMes.push(nombre); return; }
       var hecho = false;
       meses.forEach(function (m) {
         if (frec === "unica" && hecho) return;
@@ -2653,13 +2657,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var modo = c.gastos.hay ? "hoja" : "presupuesto";
     if (modo === "hoja") {
       c.gastos.items.forEach(function (x) {
-        if (x.deuda && x.meses) {
-          /* La deuda se paga solo hasta que se termina */
-          var saldo = x.saldo || x.monto * x.meses;
-          meses.forEach(function (m) { if (m.i < x.meses) m.gas += Math.min(x.monto, Math.max(0, saldo - m.i * x.monto)); });
-          if (x.meses <= 12) meses[x.meses - 1].eventos.push({ lado: "fin", nombre: x.label, monto: x.monto });
-        }
-        else if (!necesitaMes(x.frec)) todos("gas", x.mes);
+        if (!necesitaMes(x.frec)) todos("gas", x.mes);
         else evento("gas", x.label, x.monto, x.frec, x.mesPago, x.anio, esGrande(x.frec));
       });
     } else {
@@ -2669,7 +2667,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     meses.forEach(function (m) { m.arriba = 0; });
     function arribaTodos(v) { meses.forEach(function (m) { m.arriba += v; }); }
     function arribaEvento(dif, frec, mes, anualDif) {
-      if (mes === "" || mes == null) { if (frec === "unica") meses[0].arriba += dif; else arribaTodos(anualDif / 12); return; }
+      if (mes === "" || mes == null) { arribaTodos(anualDif / 12); return; }
       var hecho = false;
       meses.forEach(function (m) { if (frec === "unica" && hecho) return; if (ocurre(frec, mes, m.cm)) { m.arriba += dif; hecho = true; } });
     }
@@ -2701,24 +2699,23 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var minM = meses.reduce(function (a, m) { return m.acum < a.acum ? m : a; }, meses[0]);
     var pesados = meses.filter(function (m) { return m.estado === "pesado" || m.estado === "falta"; });
     var holgados = meses.filter(function (m) { return m.estado === "holgado"; });
-    var pagos = [], ultimo = {};
+    var pagos = [];
     meses.forEach(function (m) {
-      m.eventos.forEach(function (e) {
-        if (e.lado !== "gas" || !e.grande) return;
-        var n = ultimo[e.nombre] != null ? m.i - ultimo[e.nombre] - 1 : m.i;
-        ultimo[e.nombre] = m.i;
-        pagos.push({ nombre: e.nombre, monto: e.monto, mes: m, meses: n, aparte: n >= 1 ? e.monto / n : e.monto });
-      });
+      m.eventos.forEach(function (e) { if (e.lado === "gas" && e.grande) pagos.push({ nombre: e.nombre, monto: e.monto, mes: m }); });
     });
     var totIng = meses.reduce(function (a, m) { return a + m.ing; }, 0), totGas = meses.reduce(function (a, m) { return a + m.gas; }, 0);
     var totPagos = pagos.reduce(function (a, p) { return a + p.monto; }, 0);
     function minus(m) { return m.nombre.toLowerCase(); }
 
     var msgs = [], recos = [];
-    var faltaMax = Math.max(0, -minM.acum);
-    if (faltaMax > 0.5) {
-      var ap = faltaMax / (minM.i + 1);
-      var t1 = "En " + minus(minM) + " su dinero no alcanzaría: le faltarían " + money(faltaMax) + ". Para evitarlo, aparte " + money(ap) + " al mes desde ahora o baje algún gasto antes de esa fecha.";
+    var faltaMax = Math.max(0, -minM.acum), balAnio = totIngA() - totGasA();
+    function totIngA() { return meses.reduce(function (a, m) { return a + m.ing; }, 0); }
+    function totGasA() { return meses.reduce(function (a, m) { return a + m.gas; }, 0); }
+    if (balAnio < -0.5) {
+      var t0 = "En el año sale más de lo que entra: le faltan " + money(-balAnio) + " al año, unos " + money(-balAnio / 12) + " al mes. Acomodar los meses no basta: necesita bajar gastos o sumar ingresos.";
+      msgs.push({ e: "ojo", txt: t0 }); recos.push(t0);
+    } else if (faltaMax > 0.5) {
+      var t1 = "En el año le alcanza (le sobran " + money(balAnio) + "), pero no en todos los meses: en " + minus(minM) + " le faltarían " + money(faltaMax) + ". Para que no le pase, empiece el año con " + money(inicial + faltaMax) + " guardados, por ejemplo de su aguinaldo o de lo que le sobró el año anterior, o cambie de mes algún pago.";
       msgs.push({ e: "ojo", txt: t1 }); recos.push(t1);
     } else {
       var t2 = "Si guarda lo que le sobra en los meses tranquilos, su dinero alcanza todo el año. Lo más bajo que llega es " + money(minM.acum) + ", en " + minus(minM) + ".";
@@ -2739,18 +2736,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       })) + ". No gaste ese dinero de más: guárdelo para los meses pesados.";
       msgs.push({ e: "ok", txt: t4 }); recos.push(t4);
     }
-    var fines = [];
-    meses.forEach(function (m) { m.eventos.forEach(function (e) { if (e.lado === "fin") fines.push({ nombre: e.nombre, monto: e.monto, mes: m }); }); });
-    var mesesDeudas = c.gastos.items.filter(function (x) { return x.deuda; }).map(function (x) { return x.meses || 999; });
-    fines.forEach(function (f) {
-      var quedan = mesesDeudas.some(function (n) { return n > f.mes.i + 1; });
+    /* Las deudas cuentan los 12 meses, como en un año típico. Si alguna termina antes, le avisamos qué hacer con ese dinero */
+    var deudasIt = modo === "hoja" ? c.gastos.items.filter(function (x) { return x.deuda; }) : [];
+    deudasIt.filter(function (x) { return x.meses && x.meses < 12; }).forEach(function (x) {
+      var quedan = deudasIt.some(function (o) { return o !== x && (o.meses || 999) > x.meses; });
       var dest = quedan ? "su siguiente deuda, para terminarla antes" : c.t === "meta" ? "su objetivo" : "su ahorro";
-      var sig = meses[f.mes.i + 1], t6 = "En " + minus(f.mes) + " hace el último pago de " + f.nombre + ". " + (sig ? "Desde " + MESES[sig.cm] : "Después") + " le quedan " + money(f.monto) + " libres al mes: no los gaste, páselos a " + dest + ".";
+      var t6 = "Contamos " + x.label + " los 12 meses, pero con su pago termina en " + fmtMeses(x.meses) + ". Cuando acabe, le quedan " + money(x.monto) + " libres al mes: no los gaste, páselos a " + dest + ".";
       msgs.push({ e: "ok", txt: t6 }); recos.push(t6);
-    });
-    if (pagos.length) recos.push("Sus pagos grandes de los próximos 12 meses suman " + money(totPagos) + ", unos " + money(totPagos / 12) + " al mes en promedio. Lo más fácil es apartar esa cantidad cada mes en una cuenta o sobre aparte.");
-    pagos.filter(function (p) { return p.mes.i >= 1; }).slice(0, 3).forEach(function (p) {
-      recos.push(p.nombre + ": vence en " + minus(p.mes) + ". Aparte " + money(p.aparte) + " al mes durante " + (p.meses === 1 ? "1 mes" : p.meses + " meses") + ".");
     });
     var totArriba = meses.reduce(function (a, m) { return a + m.arriba; }, 0);
     if (totArriba > 0.5) {
@@ -2765,6 +2757,70 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     return { meses: meses, modo: modo, inicial: inicial, minM: minM, pesados: pesados, holgados: holgados, pagos: pagos, totIng: totIng, totGas: totGas, totPagos: totPagos, totArriba: totArriba, msgs: msgs, recos: recos, sinMes: sinMes };
   }
 
+  /* =========================================================
+     Pagos grandes: cuánto apartar cada mes para tenerlos listos
+     ========================================================= */
+  /* Lo que conviene apartar al mes para un gasto que no es de cada mes */
+  function aparteMes(x) { return x.monto * fGasto(x.frec).porAnio / 12; }
+  function planGrandes(c) {
+    var fl = c.flujo;
+    if (!c.gastos.hay) return null;
+    var items = c.gastos.items.filter(function (x) { return x.grande; });
+    if (!items.length) return null;
+    var filas = items.map(function (x) {
+      var conMes = x.mesPago !== "" && x.mesPago != null, primero = conMes ? Number(x.mesPago) : 99;
+      return { nombre: x.label, monto: x.monto, anio: x.anio, frec: x.frec, frecTxt: fGasto(x.frec).label.toLowerCase(), parejo: aparteMes(x), primero: primero,
+        mesesTxt: conMes ? capital(textoMeses(x.frec, x.mesPago)) : "Sin mes" };
+    }).sort(function (a, b) { return a.primero - b.primero; });
+    var totAnual = c.gastos.grandes, totParejo = filas.reduce(function (a, f) { return a + f.parejo; }, 0);
+    var conExtra = extraFuentes().filter(function (f) { return (pctFuente(f).anuales || 0) > 0; });
+    var extraBruto = anualesExtras(), extraAnual = Math.min(extraBruto, totAnual), escala = extraBruto > 0 ? extraAnual / extraBruto : 0;
+    var mensual = Math.max(0, totAnual - extraAnual) / 12;
+    /* El sobre en un año típico: cada mes entra lo que aparta (y la parte del dinero extra cuando llega) y salen los pagos de ese mes.
+       Como en el año entra lo mismo que sale, basta con saber con cuánto debe empezar enero para no quedarse corto nunca. */
+    var entra = [], sale = [], i;
+    for (i = 0; i < 12; i++) { entra.push(mensual); sale.push(0); }
+    fl.pagos.forEach(function (p) { sale[p.mes.i] += p.monto; });
+    conExtra.forEach(function (f) {
+      var parte = montoDe(f) * (pctFuente(f).anuales || 0) / 100 * escala, nm = nombreFuente(f);
+      fl.meses.forEach(function (m) { if (m.eventos.some(function (e) { return e.lado === "ing" && e.nombre === nm; })) entra[m.i] += parte; });
+    });
+    /* Pagos sin mes: se reparten parejo, así que no cambian el arranque */
+    var sinMesAnual = filas.filter(function (f) { return f.primero === 99; }).reduce(function (a, f) { return a + f.anio; }, 0);
+    for (i = 0; i < 12; i++) sale[i] += sinMesAnual / 12;
+    var bal = 0, minBal = 0, minI = -1;
+    for (i = 0; i < 12; i++) { bal += entra[i] - sale[i]; if (bal < minBal - 0.5) { minBal = bal; minI = i; } }
+    var arranque = Math.max(0, -minBal), critico = minI >= 0 ? fl.meses[minI] : null;
+    var recos = [], nombresExtra = lista(conExtra.map(nombreFuente));
+    recos.push({ e: "info", txt: "Sus pagos grandes suman " + money(totAnual) + " al año, unos " + money(totAnual / 12) + " al mes. Lo más fácil es tener una cuenta o un sobre solo para ellos y apartar cada mes lo de la tabla." });
+    if (extraAnual > 0.5) {
+      if (mensual < 1) recos.push({ e: "ok", txt: "De su dinero extra (" + nombresExtra + "), su plan manda " + money(extraAnual) + " al año a estos pagos, y con eso alcanza. Cuando llegue, ponga esa parte en el sobre y no la toque." });
+      else recos.push({ e: "info", txt: "De su dinero extra (" + nombresExtra + "), su plan manda " + money(extraAnual) + " al año a estos pagos. Lo demás, unos " + money(mensual) + " al mes, apártelo de su dinero de cada mes." });
+    } else recos.push({ e: "info", txt: "Como su dinero extra no aparta nada para estos pagos, apártelos de su dinero de cada mes: unos " + money(mensual) + " al mes." });
+    if (arranque > 0.5 && critico) {
+      var quien = lista(fl.pagos.filter(function (p) { return p.mes.i <= critico.i; }).slice(-2).map(function (p) { return p.nombre.toLowerCase(); }));
+      recos.push({ e: "ojo", txt: "Como algunos pagos caen antes de juntar lo suficiente, su sobre debe empezar enero con unos " + money(arranque) + ". El mes más justo es " + MESES[critico.cm] + ", por " + quien + ". Una vez que tenga ese colchón, con " + money(mensual) + " al mes" + (extraAnual > 0.5 ? " y la parte del dinero extra" : "") + " el sobre se mantiene solo año con año." });
+    } else if (totAnual > 0) recos.push({ e: "ok", txt: "Apartando eso cada mes, el sobre siempre tiene lo necesario cuando llega cada pago, año con año." });
+    var sinMes = filas.filter(function (f) { return f.primero === 99; });
+    if (sinMes.length) recos.push({ e: "info", txt: "No eligió el mes de " + lista(sinMes.map(function (f) { return f.nombre.toLowerCase(); })) + ". Elíjalo en el paso 3 para saber si el sobre llega a tiempo." });
+    return { filas: filas, totAnual: totAnual, totParejo: totParejo, extraAnual: extraAnual, mensual: mensual, arranque: arranque, critico: critico, recos: recos };
+  }
+  function tablaGrandesDom(pg) {
+    var wrap = document.createElement("div"); wrap.className = "tabla-wrap";
+    var tb = document.createElement("table"); tb.className = "comp";
+    tb.innerHTML = '<thead><tr><th scope="col">Pago</th><th scope="col">Cuánto y cada cuándo</th><th scope="col">En qué mes</th><th scope="col" class="num">Aparte al mes</th></tr></thead>';
+    var body = document.createElement("tbody");
+    pg.filas.forEach(function (f) {
+      var tr = document.createElement("tr");
+      celda(tr, f.nombre); celda(tr, money(f.monto) + " " + f.frecTxt); celda(tr, f.mesesTxt); celda(tr, money(f.parejo), "num");
+      body.appendChild(tr);
+    });
+    var tt = document.createElement("tr"); tt.className = "total";
+    celda(tt, "Total"); celda(tt, money(pg.totAnual) + " al año"); celda(tt, ""); celda(tt, money(pg.totParejo), "num");
+    body.appendChild(tt);
+    tb.appendChild(body); wrap.appendChild(tb);
+    return wrap;
+  }
   function escalaFlujo(fl) {
     var vals = [0];
     fl.meses.forEach(function (m) { vals.push(m.ing, m.gas, m.acum); });
@@ -2799,7 +2855,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       out.push('<rect class="b-ing" x="' + (cx - bw - 1.5) + '" y="' + yi + '" width="' + bw + '" height="' + Math.max(0, y0 - yi) + '" rx="2"><title>Entra ' + esc(money(m.ing)) + "</title></rect>");
       out.push('<rect class="b-gas" x="' + (cx + 1.5) + '" y="' + yg + '" width="' + bw + '" height="' + Math.max(0, y0 - yg) + '" rx="2"><title>Sale ' + esc(money(m.gas)) + "</title></rect>");
       out.push('<text x="' + cx + '" y="' + (H - mB + 18) + '" text-anchor="middle">' + MESES_CORTOS[m.cm] + "</text>");
-      if (i === 0 || m.cm === 0) out.push('<text class="anio" x="' + cx + '" y="' + (H - mB + 34) + '" text-anchor="middle">' + m.anio + "</text>");
     });
     out.push('<polyline class="l-acum" points="' + fl.meses.map(function (m, i) { return (mL + i * cw + cw / 2) + "," + yv(m.acum); }).join(" ") + '"/>');
     fl.meses.forEach(function (m, i) {
@@ -2845,8 +2900,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var ul = document.createElement("ul"); ul.className = "fm-ev";
         m.eventos.forEach(function (e) {
           var it = document.createElement("li"); it.className = e.lado;
-          var a = document.createElement("span"); a.textContent = e.lado === "fin" ? "Último pago: " + e.nombre : e.nombre;
-          var b = document.createElement("span"); b.textContent = e.lado === "fin" ? "¡Termina!" : (e.lado === "ing" ? "+" : "−") + money(e.monto);
+          var a = document.createElement("span"); a.textContent = e.nombre;
+          var b = document.createElement("span"); b.textContent = (e.lado === "ing" ? "+" : "−") + money(e.monto);
           it.appendChild(a); it.appendChild(b); ul.appendChild(it);
         });
         li.appendChild(ul);
@@ -2856,28 +2911,19 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     root.appendChild(ol);
     var tot = document.createElement("p");
     tot.className = "ayuda";
-    tot.textContent = "En los 12 meses entran " + money(fl.totIng) + " y salen " + money(fl.totGas) + (fl.inicial > 0 ? ", y empieza con " + money(fl.inicial) : "") + ".";
+    tot.textContent = "En el año entran " + money(fl.totIng) + " y salen " + money(fl.totGas) + (fl.inicial > 0 ? ", y empieza enero con " + money(fl.inicial) : "") + ".";
     root.appendChild(tot);
-    if (fl.pagos.length) {
-      var h = document.createElement("h4"); h.textContent = "Pagos grandes que vienen y cuánto apartar";
-      root.appendChild(h);
-      var wrap = document.createElement("div"); wrap.className = "tabla-wrap";
-      var tb = document.createElement("table"); tb.className = "comp";
-      tb.innerHTML = '<thead><tr><th scope="col">Pago</th><th scope="col">Cuándo</th><th scope="col" class="num">Monto</th><th scope="col" class="num">Aparte al mes</th></tr></thead>';
-      var body = document.createElement("tbody");
-      fl.pagos.forEach(function (p) {
-        var tr = document.createElement("tr");
-        celda(tr, p.nombre);
-        celda(tr, p.mes.nombre + (p.mes.i === 0 ? " (este mes)" : " (en " + (p.mes.i === 1 ? "1 mes" : p.mes.i + " meses") + ")"));
-        celda(tr, money(p.monto), "num");
-        celda(tr, p.mes.i === 0 ? "Se paga este mes" : money(p.aparte), "num");
-        body.appendChild(tr);
-      });
-      tb.appendChild(body); wrap.appendChild(tb); root.appendChild(wrap);
-      var nota = document.createElement("p");
-      nota.className = "ayuda";
-      nota.textContent = "Aparte al mes = el monto del pago entre los meses que faltan para pagarlo. En promedio, sus pagos grandes equivalen a " + money(fl.totPagos / 12) + " al mes.";
-      root.appendChild(nota);
+    var pg = fl.grandes;
+    if (pg) {
+      var hg = document.createElement("h4"); hg.textContent = "Cuánto apartar para sus pagos grandes";
+      root.appendChild(hg);
+      root.appendChild(tablaGrandesDom(pg));
+      var ng = document.createElement("p"); ng.className = "ayuda";
+      ng.textContent = "Aparte al mes = lo que cuesta cada pago repartido en los 12 meses del año.";
+      root.appendChild(ng);
+      var bm = document.createElement("div"); bm.className = "flujo-msgs";
+      pg.recos.forEach(function (m) { bm.appendChild(estadoEl(m)); });
+      root.appendChild(bm);
     }
   }
   function renderFlujoPaso() {
@@ -2985,6 +3031,9 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var gc = recosCasa(c);
     if (gc.length) grupos.push({ titulo: "Su casa", items: gc });
     if (c.flujo && c.flujo.recos.length) grupos.push({ titulo: "Su flujo del año", items: c.flujo.recos });
+    if (c.grandesPlan) grupos.push({ titulo: "Sus pagos grandes", items: c.grandesPlan.filas.map(function (f) {
+      return f.nombre + ": " + money(f.monto) + " " + f.frecTxt + (f.primero !== 99 ? ", en " + f.mesesTxt.toLowerCase() : "") + ". Aparte unos " + money(f.parejo) + " al mes.";
+    }).concat(c.grandesPlan.recos.map(function (m) { return m.txt; })) });
 
     if (c.comp) {
       var gg = [], k = c.comp, pq = c.base > 0 ? k.queda / c.base * 100 : 0;
@@ -3098,7 +3147,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     $("#res-mes").textContent = money(c.base);
     $("#res-extra").textContent = money(c.extra);
     $("#res-anio").textContent = money(c.base * 12 + c.extra);
-    $("#rs-flujo-sub").textContent = "Cuánto entra y cuánto sale en cada uno de los próximos 12 meses" + (c.flujo.inicial > 0 ? ", empezando con " + money(c.flujo.inicial) + " disponibles" : "") + ".";
+    $("#rs-flujo-sub").textContent = "Un año típico, de enero a diciembre: cuánto entra y cuánto sale cada mes" + (c.flujo.inicial > 0 ? ", empezando enero con " + money(c.flujo.inicial) : "") + ".";
     renderFlujo($("#flujo-res"), c.flujo);
 
     $("#rs-mes-sub").textContent = "Con su dinero para el día a día de " + money(c.base) + " al mes.";
@@ -3651,7 +3700,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         doc.setFillColor(ACC[0], ACC[1], ACC[2]); doc.rect(cx - bw - 1, yi, bw, Math.max(0, y0 - yi), "F");
         doc.setFillColor(217, 119, 74); doc.rect(cx + 1, yg, bw, Math.max(0, y0 - yg), "F");
         font("normal", 8, SOFT); doc.text(MESES_CORTOS[m.cm], cx, gy1 + 11, { align: "center" });
-        if (i === 0 || m.cm === 0) { font("bold", 8, INK); doc.text(String(m.anio), cx, gy1 + 21, { align: "center" }); }
       });
       doc.setDrawColor(INK[0], INK[1], INK[2]); doc.setLineWidth(1.4);
       var px = null, py = null;
@@ -3674,7 +3722,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       });
       y += 22;
     }
-    seccion("Mi dinero mes por mes", "Cuánto entra y cuánto sale en cada uno de los próximos 12 meses" + (fl.inicial > 0 ? ", empezando con " + money(fl.inicial) + " disponibles" : "") + ". " +
+    seccion("Mi dinero mes por mes", "Un año típico, de enero a diciembre: cuánto entra y cuánto sale cada mes" + (fl.inicial > 0 ? ", empezando enero con " + money(fl.inicial) : "") + ". " +
       (fl.modo === "hoja" ? "Los gastos salen de su hoja de gastos, con cada pago en el mes en que cae." : "Los gastos son los de su presupuesto de cada mes, porque no llenó la hoja de gastos."), 330);
     graficaPdf();
     fl.msgs.forEach(aviso);
@@ -3685,8 +3733,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var partes = [ESTADO_TXT[m.estado] || ""];
         if (en.length) partes.push("Entra: " + en.join(", "));
         if (sa.length) partes.push("Sale: " + sa.join(", "));
-        var fn = m.eventos.filter(function (e) { return e.lado === "fin"; }).map(function (e) { return e.nombre; });
-        if (fn.length) partes.push("Último pago: " + fn.join(", "));
         if (m.arriba > 0.5) partes.push("Mes bueno: hasta " + money(m.arriba) + " más");
         return {
           c: [m.nombre, money(m.ing), money(m.gas), signo(m.saldo), money(m.acum)],
@@ -3695,14 +3741,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
           colores: { 3: m.saldo < 0 ? BAD : ACC, 4: m.acum < 0 ? BAD : INK }
         };
       }));
-    parrafo("En los 12 meses entran " + money(fl.totIng) + " y salen " + money(fl.totGas) + ".", 10.5, SOFT);
-    if (fl.pagos.length) {
-      subtitulo("Pagos grandes que vienen y cuánto apartar");
-      tabla([{ t: "Pago", x: M, w: 160 }, { t: "Cuándo", x: M + 170 }, { t: "Monto", x: M + 400, a: "right" }, { t: "Aparte al mes", x: W - M, a: "right", b: true }],
-        fl.pagos.map(function (p) {
-          return { c: [p.nombre, p.mes.nombre + (p.mes.i === 0 ? " (este mes)" : " (en " + (p.mes.i === 1 ? "1 mes" : p.mes.i + " meses") + ")"), money(p.monto), p.mes.i === 0 ? "Este mes" : money(p.aparte)] };
-        }));
-      parrafo("Aparte al mes = el monto del pago entre los meses que faltan para pagarlo. En promedio, sus pagos grandes equivalen a " + money(fl.totPagos / 12) + " al mes.", 10.5, SOFT);
+    parrafo("En el año entran " + money(fl.totIng) + " y salen " + money(fl.totGas) + ".", 10.5, SOFT);
+    var pgP = c.grandesPlan;
+    if (pgP) {
+      seccion("Cuánto apartar para mis pagos grandes", "Cada pago grande repartido en el año: lo que conviene apartar cada mes en una cuenta o sobre solo para ellos.", 200);
+      var fg = pgP.filas.map(function (f) { return { c: [f.nombre, money(f.monto), f.mesesTxt, money(f.parejo)], sub: capital(f.frecTxt), sw: [79, 127, 168] }; });
+      fg.push({ c: ["Total al año", money(pgP.totAnual), "", money(pgP.totParejo)], bold: true, color: ACC });
+      tabla([{ t: "Pago", x: M, w: 190 }, { t: "Monto", x: M + 265, a: "right" }, { t: "En qué mes", x: M + 285 }, { t: "Aparte al mes", x: W - M, a: "right", b: true }], fg);
+      pgP.recos.forEach(aviso);
     }
 
     /* Presupuesto de cada mes */
