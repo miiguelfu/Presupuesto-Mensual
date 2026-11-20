@@ -47,6 +47,7 @@ html, body { margin: 0; }
   --c-gustos: #E58A33;
   --c-otros: #8D9A95;
   --c-anuales: #4F7FA8;
+  --c-gasto: #D9774A;
 
   --font-display: "Bitter", Georgia, "Times New Roman", serif;
   --font-body: "Atkinson Hyperlegible", "Segoe UI", Verdana, Arial, sans-serif;
@@ -55,7 +56,7 @@ html, body { margin: 0; }
 
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { font-size: 100%; }
+html { font-size: 100%; background: var(--bg); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 html[data-letra="grande"] { font-size: 115%; }
 
 body {
@@ -103,7 +104,7 @@ p { margin: 0; }
 .letra .a-grande { font-size: 1.2em; }
 
 /* Pasos */
-.pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.4rem; }
+.pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.4rem; }
 .paso {
   width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 0.35rem;
   padding: 0.7rem 0.15rem 0.2rem; background: transparent; border: 0; border-top: 5px solid var(--line);
@@ -242,14 +243,55 @@ legend { padding: 0; margin: 0 0 0.875rem; font-weight: 700; font-size: 1.125rem
 .g-head h3 { display: flex; align-items: center; gap: 0.625rem; }
 .g-sub { font-size: 0.95rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .gasto { display: grid; grid-template-columns: minmax(0, 1fr) 9.5rem 11.5rem; gap: 0.5rem 0.625rem; align-items: center; padding-top: 0.625rem; border-top: 1px solid var(--line); }
-.gasto > label { font-weight: 700; font-size: 1.0625rem; min-width: 0; }
+.gasto > .g-nombre { display: grid; gap: 0.15rem; min-width: 0; }
+.g-nombre > label:first-child { font-weight: 700; font-size: 1.0625rem; }
+.nolo { display: inline-flex; align-items: center; gap: 0.45rem; width: fit-content; min-height: 2rem; font-size: 0.95rem; color: var(--ink-soft); cursor: pointer; }
+.nolo input { width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.gasto.es-no .dinero, .gasto.es-no select { opacity: 0.4; }
+.gasto.falta { background: var(--bad-bg); border-top-color: transparent; border-radius: 8px; padding: 0.625rem; }
+.fuente.falta { border-color: var(--bad-ink); box-shadow: inset 5px 0 0 var(--bad-ink); }
+.g-progreso { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: grid; gap: 0.4rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem 1.125rem; box-shadow: var(--shadow); }
+.g-progreso p { font-weight: 700; }
+.g-progreso span { font-variant-numeric: tabular-nums; color: var(--accent); }
+
+/* Paso 5: diagnóstico y consejos por rubro */
+.diag { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; display: grid; gap: 1rem; }
+.diag > h3 { font-size: 1.375rem; }
+.diag-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.625rem; }
+.diag-nums > div { background: var(--bg); border-radius: 10px; padding: 0.75rem 1rem; display: grid; gap: 0.1rem; align-content: start; min-width: 0; }
+.diag-nums span { font-size: 0.95rem; font-weight: 700; color: var(--ink-soft); }
+.diag-nums strong { font-family: var(--font-display); font-size: 1.5rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.2; }
+.diag-nums small { font-size: 0.95rem; color: var(--ink-soft); }
+.diag-nums [data-e="ok"] strong { color: var(--accent); }
+.diag-nums [data-e="ojo"] strong { color: var(--warn-ink); }
+.diag-nums [data-e="mal"] strong { color: var(--bad-ink); }
+.diag ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+.diag li { position: relative; padding-left: 1.375rem; }
+.diag li::before { content: ""; position: absolute; left: 0.2rem; top: 0.6em; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--warn-fill); }
+.diag-modo { font-weight: 700; color: var(--accent); }
+.acciones-btn { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.chip-v { font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.15rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.chip-v[data-e="bien"] { background: var(--accent-soft); color: var(--accent); }
+.chip-v[data-e="alto"], .chip-v[data-e="bajo"] { background: var(--warn-bg); color: var(--warn-ink); box-shadow: inset 0 0 0 1px var(--warn-fill); }
+.chip-v[data-e="muy-alto"] { background: var(--bad-ink); color: var(--accent-ink); }
+.rubro .consejo { font-weight: 700; font-size: 1.0625rem; }
+.consejo[data-e="bien"] { color: var(--accent); }
+.consejo[data-e="alto"], .consejo[data-e="bajo"] { color: var(--warn-ink); }
+.consejo[data-e="muy-alto"] { color: var(--bad-ink); }
+.rubro .dif { font-size: 1rem; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.rubro .dif[data-e="baja"] { color: var(--accent); }
+.rubro .dif[data-e="sube"] { color: var(--warn-ink); }
 .gasto .input { min-height: 3rem; font-size: 1.0625rem; }
+.gasto select.input { padding-left: 0.75rem; padding-right: 2.25rem; background-position: right 0.6rem center; }
 .gasto .grande { display: block; font-size: 0.85rem; font-weight: 700; color: var(--oro); }
+.gasto .g-mes { grid-column: 2 / -1; }
+.gasto-x .campo-mes { grid-column: 1 / -1; }
 .gasto-x { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .gasto-x .gx-top { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
 .estado { padding: 0.875rem 1.125rem; border-radius: 10px; font-weight: 700; }
 .estado[data-e="ok"] { background: var(--accent-soft); color: var(--accent); }
 .estado[data-e="ojo"] { background: var(--warn-bg); color: var(--warn-ink); }
+.estado[data-e="info"] { background: var(--surface); border: 1px solid var(--line); color: var(--ink-soft); font-weight: 400; }
 
 /* Pasos 4 y 5: reparto */
 .resumen-pct {
@@ -318,7 +360,53 @@ details.leyenda ul { margin: 0.75rem 0 0.25rem; padding: 0; list-style: none; di
 details.leyenda li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.625rem; align-items: baseline; }
 details.leyenda li span.sw { transform: translateY(0.15rem); }
 
-/* Paso 6: resultados */
+/* Paso 4: flujo del año */
+.campo-saldo { max-width: 26rem; }
+.flujo { display: grid; gap: 1rem; }
+.flujo-msgs { display: grid; gap: 0.75rem; }
+.leyenda-flujo { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 1rem; color: var(--ink-soft); }
+.leyenda-flujo span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.leyenda-flujo i { display: inline-block; width: 0.95rem; height: 0.95rem; border-radius: 3px; }
+.leyenda-flujo i.ing { background: var(--accent); }
+.leyenda-flujo i.gas { background: var(--c-gasto); }
+.leyenda-flujo i.acum { height: 3px; width: 1.3rem; border-radius: 2px; background: var(--ink); }
+.leyenda-flujo i.banda { background: var(--bad-bg); box-shadow: inset 0 0 0 1px var(--warn-fill); }
+.grafica { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.75rem 0.5rem 0.25rem; }
+.grafica svg { display: block; width: 100%; min-width: 34rem; height: auto; }
+.grafica .banda { fill: var(--bad-bg); }
+.grafica .rejilla { stroke: var(--line); stroke-width: 1; }
+.grafica .cero { stroke: var(--line-strong); stroke-width: 1.5; }
+.grafica .b-ing { fill: var(--accent); }
+.grafica .b-gas { fill: var(--c-gasto); }
+.grafica .l-acum { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.grafica .p-acum { fill: var(--ink); }
+.grafica .p-acum.neg { fill: var(--bad-ink); }
+.grafica text { fill: var(--ink-soft); font-family: var(--font-body); font-size: 12px; }
+.grafica text.anio { font-weight: 700; fill: var(--ink); }
+.flujo-meses { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.fm { background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: 12px; padding: 0.875rem 1rem; display: grid; gap: 0.5rem; align-content: start; min-width: 0; }
+.fm[data-e="pesado"] { border-left-color: var(--warn-fill); }
+.fm[data-e="falta"] { border-left-color: var(--bad-ink); background: var(--bad-bg); }
+.fm[data-e="holgado"] { border-left-color: var(--accent); }
+.fm-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.25rem 0.75rem; }
+.fm-head strong { font-family: var(--font-display); font-size: 1.125rem; }
+.chip { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.15rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.chip[data-e="pesado"] { background: var(--warn-bg); color: var(--warn-ink); box-shadow: inset 0 0 0 1px var(--warn-fill); }
+.chip[data-e="falta"] { background: var(--bad-ink); color: var(--accent-ink); }
+.chip[data-e="holgado"] { background: var(--accent-soft); color: var(--accent); }
+.fm-nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 1rem; margin: 0; font-variant-numeric: tabular-nums; }
+.fm-nums div { display: grid; gap: 0; min-width: 0; }
+.fm-nums dt { color: var(--ink-soft); font-size: 0.95rem; }
+.fm-nums dd { margin: 0; font-weight: 700; font-size: 1.125rem; white-space: nowrap; }
+.fm-nums dd.mas { color: var(--accent); }
+.fm-nums dd.menos { color: var(--bad-ink); }
+.fm-ev { list-style: none; margin: 0; padding: 0.5rem 0 0; border-top: 1px dashed var(--line); display: grid; gap: 0.2rem; font-size: 1rem; }
+.fm-ev li { display: flex; justify-content: space-between; gap: 0.75rem; }
+.fm-ev li span:last-child { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fm-ev li.ing span:last-child { color: var(--accent); }
+.fm-ev li.gas span:last-child { color: var(--bad-ink); }
+
+/* Paso 7: resultados */
 .meta { color: var(--ink-soft); font-size: 1.0625rem; }
 .cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
 .cifras > div { padding: 1rem 1.25rem; display: grid; gap: 0.2rem; align-content: start; min-width: 0; }
@@ -402,7 +490,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   .paso .txt { display: none; }
   .paso .num { width: 2rem; height: 2rem; font-size: 0.95rem; }
   .gasto { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .gasto > label { grid-column: 1 / -1; }
+  .gasto > .g-nombre { grid-column: 1 / -1; }
+  .diag-nums { grid-template-columns: minmax(0, 1fr); }
+  .acciones-btn .btn { width: 100%; }
+  .gasto .g-mes { grid-column: 1 / -1; }
+  .flujo-meses { grid-template-columns: minmax(0, 1fr); }
   .rubro-ctrl { grid-template-columns: minmax(0, 1fr); }
   .igual { display: none; }
   .pct-box { justify-content: space-between; }
@@ -443,18 +535,19 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       <li><button type="button" class="paso" data-ir="1" aria-label="Paso 1: Ingresos"><span class="num">1</span><span class="txt">Ingresos</span></button></li>
       <li><button type="button" class="paso" data-ir="2" aria-label="Paso 2: Objetivo"><span class="num">2</span><span class="txt">Objetivo</span></button></li>
       <li><button type="button" class="paso" data-ir="3" aria-label="Paso 3: Mis gastos"><span class="num">3</span><span class="txt">Mis gastos</span></button></li>
-      <li><button type="button" class="paso" data-ir="4" aria-label="Paso 4: Reparto del mes"><span class="num">4</span><span class="txt">Reparto</span></button></li>
-      <li><button type="button" class="paso" data-ir="5" aria-label="Paso 5: Dinero extra"><span class="num">5</span><span class="txt">Extras</span></button></li>
-      <li><button type="button" class="paso" data-ir="6" aria-label="Paso 6: Mi plan"><span class="num">6</span><span class="txt">Mi plan</span></button></li>
+      <li><button type="button" class="paso" data-ir="4" aria-label="Paso 4: Flujo del año"><span class="num">4</span><span class="txt">Flujo</span></button></li>
+      <li><button type="button" class="paso" data-ir="5" aria-label="Paso 5: Reparto del mes"><span class="num">5</span><span class="txt">Reparto</span></button></li>
+      <li><button type="button" class="paso" data-ir="6" aria-label="Paso 6: Dinero extra"><span class="num">6</span><span class="txt">Extras</span></button></li>
+      <li><button type="button" class="paso" data-ir="7" aria-label="Paso 7: Mi plan"><span class="num">7</span><span class="txt">Mi plan</span></button></li>
     </ol>
   </nav>
 
   <!-- PASO 1: INGRESOS -->
   <section class="panel" data-panel="1" aria-labelledby="h-paso1">
     <div class="panel-head">
-      <p class="cuenta">Paso 1 de 6</p>
+      <p class="cuenta">Paso 1 de 7</p>
       <h2 id="h-paso1" tabindex="-1">¿Cuánto dinero recibe?</h2>
-      <p>Anote cada entrada de dinero, aunque sea pequeña o llegue una sola vez al año, como el aguinaldo. Solo díganos cuánto recibe y cada cuándo; nosotros le recomendamos en qué usarlo.</p>
+      <p>Anote cada entrada de dinero, aunque sea pequeña o llegue una sola vez al año, como el aguinaldo. Díganos cuánto recibe, cada cuándo y, si no llega cada mes, en qué mes llega. Nosotros le recomendamos en qué usarlo.</p>
     </div>
 
     <div class="info">
@@ -490,7 +583,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   <!-- PASO 2: OBJETIVO -->
   <section class="panel" data-panel="2" aria-labelledby="h-paso2" hidden>
     <div class="panel-head">
-      <p class="cuenta">Paso 2 de 6</p>
+      <p class="cuenta">Paso 2 de 7</p>
       <h2 id="h-paso2" tabindex="-1">¿Qué quiere lograr con su dinero?</h2>
       <p>Elija el objetivo más importante para usted en los próximos meses. Con eso decidimos cómo repartir su dinero extra y ajustamos las sugerencias de su plan.</p>
     </div>
@@ -550,22 +643,29 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       </div>
     </div>
 
+    <p class="aviso" id="err-obj" role="alert" hidden></p>
+
     <div class="nav">
       <button type="button" class="btn btn-secundario" id="p2-ant"><span aria-hidden="true">←</span> Regresar</button>
       <button type="button" class="btn btn-primario derecha" id="p2-sig">Siguiente: mis gastos <span aria-hidden="true">→</span></button>
     </div>
   </section>
 
-  <!-- PASO 3: HOJA DE GASTOS (OPCIONAL) -->
+  <!-- PASO 3: HOJA DE GASTOS -->
   <section class="panel" data-panel="3" aria-labelledby="h-paso3" hidden>
     <div class="panel-head">
-      <p class="cuenta">Paso 3 de 6 · Opcional</p>
-      <h2 id="h-paso3" tabindex="-1">¿Sabe cuánto gasta en cada cosa?</h2>
-      <p>Si sabe cuánto paga de luz, súper, gasolina o tenencia, anótelo aquí. Con eso armamos su presupuesto y lo incluimos en su reporte. Deje en blanco lo que no aplique. Si no lo sabe, puede saltar este paso.</p>
+      <p class="cuenta">Paso 3 de 7</p>
+      <h2 id="h-paso3" tabindex="-1">¿Cuánto gasta en cada cosa?</h2>
+      <p>Anote cuánto paga en cada cosa y cada cuándo. Si algo no lo paga, marque <strong>«No lo pago»</strong>. Para lo que no paga cada mes, elija en qué mes cae, como el seguro en septiembre. Con estos datos le decimos qué porcentaje de su dinero se va en cada cosa y dónde puede ajustar, así que necesitamos todos sus gastos para seguir.</p>
     </div>
 
     <div class="info">
       <p><strong>Pagos grandes del año.</strong> Lo que paga cada seis meses o una vez al año, como el predial, la tenencia o el seguro del coche, lo separamos del gasto de cada mes para planear con qué dinero cubrirlo.</p>
+    </div>
+
+    <div class="g-progreso" role="status" aria-live="polite">
+      <p><span id="g-prog-num">0 de 0</span> gastos contestados</p>
+      <div class="barra" aria-hidden="true"><div id="g-prog-barra"></div></div>
     </div>
 
     <div class="acciones">
@@ -582,26 +682,51 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       <div class="t-extra"><span>Pagos grandes del año</span><strong id="g-tot-grandes">$0</strong><small id="g-tot-grandes-sub">al año</small></div>
     </div>
     <p class="estado" id="g-estado" hidden></p>
+    <p class="aviso" id="err-gastos" role="alert" hidden></p>
 
     <div class="nav">
       <button type="button" class="btn btn-secundario" id="p3-ant"><span aria-hidden="true">←</span> Regresar</button>
-      <div class="nav-der">
-        <button type="button" class="btn btn-secundario" id="p3-saltar">Saltar este paso</button>
-        <button type="button" class="btn btn-primario" id="p3-sig">Siguiente: reparto <span aria-hidden="true">→</span></button>
-      </div>
+      <button type="button" class="btn btn-primario derecha" id="p3-sig">Siguiente: mi flujo del año <span aria-hidden="true">→</span></button>
     </div>
   </section>
 
-  <!-- PASO 4: REPARTO DEL MES -->
+  <!-- PASO 4: FLUJO DEL AÑO -->
   <section class="panel" data-panel="4" aria-labelledby="h-paso4" hidden>
     <div class="panel-head">
-      <p class="cuenta">Paso 4 de 6</p>
-      <h2 id="h-paso4" tabindex="-1">¿Cómo quiere repartir su dinero de cada mes?</h2>
-      <p>Su dinero para el día a día es de <strong id="p4-base">$0</strong> al mes. En cada rubro puede escribir el porcentaje o la cantidad en pesos, y el otro dato se calcula solo. Entre todos deben sumar 100%.</p>
+      <p class="cuenta">Paso 4 de 7</p>
+      <h2 id="h-paso4" tabindex="-1">Su dinero mes por mes</h2>
+      <p>Aquí ve cuánto entra y cuánto sale en cada uno de los próximos 12 meses, con el aguinaldo, el predial, los seguros y cada pago en el mes en que cae. Así sabe qué meses vienen pesados y cuánto apartar antes.</p>
+    </div>
+
+    <div class="campo campo-saldo">
+      <label for="saldo-inicial">¿Cuánto dinero tiene hoy para sus gastos? <span class="ayuda">(opcional)</span></label>
+      <div class="dinero"><span aria-hidden="true">$</span><input class="input" id="saldo-inicial" data-dinero type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+      <p class="ayuda">Lo que tiene en su cuenta o en efectivo, sin contar su ahorro para emergencias.</p>
+    </div>
+
+    <div class="flujo" id="flujo-paso"></div>
+
+    <div class="acciones">
+      <button type="button" class="btn-texto" id="pf-ir-ingresos">Cambiar ingresos o sus meses</button>
+      <button type="button" class="btn-texto" id="pf-ir-gastos">Cambiar gastos o sus meses</button>
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-secundario" id="pf-ant"><span aria-hidden="true">←</span> Regresar</button>
+      <button type="button" class="btn btn-primario derecha" id="pf-sig">Siguiente: reparto del mes <span aria-hidden="true">→</span></button>
+    </div>
+  </section>
+
+  <!-- PASO 5: REPARTO DEL MES -->
+  <section class="panel" data-panel="5" aria-labelledby="h-paso5" hidden>
+    <div class="panel-head">
+      <p class="cuenta">Paso 5 de 7</p>
+      <h2 id="h-paso5" tabindex="-1">¿Cómo quiere repartir su dinero de cada mes?</h2>
+      <p>Su dinero para el día a día es de <strong id="p4-base">$0</strong> al mes. Con su hoja de gastos calculamos qué porcentaje de su ingreso se va en cada cosa y lo comparamos con lo recomendado. Su plan empieza con sus gastos de hoy: puede aplicar nuestras sugerencias o cambiar cada rubro escribiendo el porcentaje o la cantidad.</p>
     </div>
 
     <p class="aviso suave" id="p4-sin-base" hidden>No tiene ingresos que lleguen cada mes, cada quincena o cada semana. Regrese al paso 1 para revisarlos.</p>
-    <p class="info" id="p4-real-nota" hidden></p>
+    <div class="diag" id="p5-diag" hidden></div>
 
     <div class="resumen-pct" id="rp-mes" data-estado="listo">
       <div class="rp-top">
@@ -615,7 +740,6 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     <div class="rubros" id="rubros"></div>
 
     <div class="acciones">
-      <button type="button" class="btn-texto" id="btn-usar-reales" hidden>Usar mis gastos reales</button>
       <button type="button" class="btn-texto" id="btn-sugerido-mes">Volver a los porcentajes sugeridos</button>
     </div>
 
@@ -625,11 +749,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     </div>
   </section>
 
-  <!-- PASO 5: DINERO EXTRA -->
-  <section class="panel" data-panel="5" aria-labelledby="h-paso5" hidden>
+  <!-- PASO 6: DINERO EXTRA -->
+  <section class="panel" data-panel="6" aria-labelledby="h-paso6" hidden>
     <div class="panel-head">
-      <p class="cuenta">Paso 5 de 6</p>
-      <h2 id="h-paso5" tabindex="-1">Su plan para el dinero extra</h2>
+      <p class="cuenta">Paso 6 de 7</p>
+      <h2 id="h-paso6" tabindex="-1">Su plan para el dinero extra</h2>
       <p>Es el dinero que no llega cada mes: <strong id="p5-base">$0</strong> al año. Para cada pago le recomendamos un reparto según su objetivo. Si quiere, ajústelo escribiendo el porcentaje o la cantidad.</p>
     </div>
 
@@ -648,11 +772,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     </div>
   </section>
 
-  <!-- PASO 6: RESULTADO -->
-  <section class="panel" data-panel="6" aria-labelledby="h-paso6" hidden>
+  <!-- PASO 7: RESULTADO -->
+  <section class="panel" data-panel="7" aria-labelledby="h-paso7" hidden>
     <div class="panel-head">
-      <p class="cuenta">Paso 6 de 6</p>
-      <h2 id="h-paso6" tabindex="-1">Su plan de dinero</h2>
+      <p class="cuenta">Paso 7 de 7</p>
+      <h2 id="h-paso7" tabindex="-1">Su plan de dinero</h2>
       <p class="meta" id="res-meta"></p>
     </div>
 
@@ -661,6 +785,12 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       <div class="c-extra"><span>Dinero extra al año</span><strong id="res-extra">$0</strong></div>
       <div><span>Total al año</span><strong id="res-anio">$0</strong></div>
     </div>
+
+    <section class="res-sec" id="sec-flujo" aria-labelledby="rs-flujo">
+      <h3 id="rs-flujo">Su dinero mes por mes</h3>
+      <p class="sub" id="rs-flujo-sub"></p>
+      <div class="flujo" id="flujo-res"></div>
+    </section>
 
     <section class="res-sec" aria-labelledby="rs-mes">
       <h3 id="rs-mes">Presupuesto de cada mes</h3>
@@ -672,11 +802,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
 
     <section class="res-sec" id="sec-gastos" aria-labelledby="rs-gastos">
       <h3 id="rs-gastos">Sus gastos reales</h3>
-      <p class="sub">Lo que anotó en su hoja de gastos, comparado con su plan.</p>
+      <p class="sub">Qué porcentaje de su ingreso se va hoy en cada cosa, comparado con lo recomendado y con su plan.</p>
       <div class="meta-card" id="res-gastos"></div>
       <div class="tabla-wrap">
         <table class="comp">
-          <thead><tr><th scope="col">Rubro</th><th scope="col" class="num">Planeado</th><th scope="col" class="num">Hoy gasta</th><th scope="col" class="num">Diferencia</th></tr></thead>
+          <thead><tr><th scope="col">Rubro</th><th scope="col" class="num">Hoy gasta</th><th scope="col" class="num">% de su ingreso</th><th scope="col">Recomendado</th><th scope="col" class="num">Su plan</th><th scope="col" class="num">Cambio</th></tr></thead>
           <tbody id="comp-body"></tbody>
         </table>
       </div>
@@ -764,20 +894,23 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     { id: "mensual",   label: "Cada mes",        porAnio: 12 },
     { id: "bimestral", label: "Cada dos meses",  porAnio: 6 },
     { id: "semestral", label: "Cada seis meses", porAnio: 2 },
-    { id: "anual",     label: "Una vez al año",  porAnio: 1 }
+    { id: "anual",     label: "Una vez al año",  porAnio: 1 },
+    { id: "unica",     label: "Una sola vez",    porAnio: 1 }
   ];
+  var MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  var MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
   var TIPOS = [
     { id: "pension-imss",      label: "Pensión del IMSS",                        frec: "mensual",   seguro: true },
     { id: "pension-issste",    label: "Pensión del ISSSTE",                      frec: "mensual",   seguro: true },
     { id: "pension-otra",      label: "Otra pensión o jubilación",               frec: "mensual",   seguro: true },
-    { id: "bienestar",         label: "Pensión del Bienestar (adultos mayores)", frec: "bimestral", seguro: true },
-    { id: "mujeres-bienestar", label: "Pensión Mujeres Bienestar",               frec: "bimestral", seguro: true },
+    { id: "bienestar",         label: "Pensión del Bienestar (adultos mayores)", frec: "bimestral", seguro: true, mes: "0" },
+    { id: "mujeres-bienestar", label: "Pensión Mujeres Bienestar",               frec: "bimestral", seguro: true, mes: "0" },
     { id: "sueldo",            label: "Sueldo o salario",                        frec: "quincenal", seguro: true },
     { id: "negocio",           label: "Negocio o trabajo por mi cuenta",         frec: "mensual",   seguro: false },
     { id: "renta",             label: "Renta de una propiedad",                  frec: "mensual",   seguro: false },
     { id: "apoyo",             label: "Apoyo de hijos o familiares",             frec: "mensual",   seguro: false },
-    { id: "aguinaldo",         label: "Aguinaldo",                               frec: "anual",     seguro: true },
+    { id: "aguinaldo",         label: "Aguinaldo",                               frec: "anual",     seguro: true, mes: "11" },
     { id: "intereses",         label: "Intereses o inversiones",                 frec: "mensual",   seguro: false },
     { id: "otro",              label: "Otro ingreso",                            frec: "mensual",   seguro: false }
   ];
@@ -826,7 +959,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   var GASTOS_BASE = [
     { id: "renta",         rubro: "vivienda",   label: "Renta o hipoteca",               frec: "mensual" },
     { id: "mantenimiento", rubro: "vivienda",   label: "Cuota de mantenimiento",         frec: "mensual" },
-    { id: "predial",       rubro: "vivienda",   label: "Predial",                        frec: "anual" },
+    { id: "predial",       rubro: "vivienda",   label: "Predial",                        frec: "anual", mes: "0" },
     { id: "luz",           rubro: "servicios",  label: "Luz",                            frec: "bimestral" },
     { id: "agua",          rubro: "servicios",  label: "Agua",                           frec: "mensual" },
     { id: "gas",           rubro: "servicios",  label: "Gas",                            frec: "mensual" },
@@ -887,7 +1020,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   };
   var PLAZOS = [3, 6, 12, 18, 24, 36];
   var INF_DEFAULT = 4;
-  var KEY = "presupuesto-mensual-v3";
+  var KEY = "presupuesto-mensual-v4";
+  var KEY_ANT = "presupuesto-mensual-v3";
   var KEY_LETRA = "presupuesto-mensual-letra";
 
   /* =========================================================
@@ -929,22 +1063,27 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function tipoObjDe(id) { var o = porId(OBJETIVOS, id); return o ? o.tipo : "ninguno"; }
 
   var nextId = 1;
-  function nuevaFuente(o) { o = o || {}; return { id: nextId++, tipo: o.tipo || "", detalle: o.detalle || "", monto: o.monto || "", frecuencia: o.frecuencia || "mensual", pct: o.pct || null, tocado: !!o.tocado }; }
+  function nuevaFuente(o) { o = o || {}; return { id: nextId++, tipo: o.tipo || "", detalle: o.detalle || "", monto: o.monto || "", frecuencia: o.frecuencia || "mensual", mes: o.mes != null ? String(o.mes) : "", pct: o.pct || null, tocado: !!o.tocado }; }
   var nextGx = 1;
-  function nuevoGastoExtra(o) { o = o || {}; return { id: nextGx++, label: o.label || "", rubro: rubroDe(o.rubro) ? o.rubro : "otros", monto: o.monto || "", frec: fGasto(o.frec).id }; }
+  function nuevoGastoExtra(o) { o = o || {}; return { id: nextGx++, label: o.label || "", rubro: rubroDe(o.rubro) ? o.rubro : "otros", monto: o.monto || "", frec: fGasto(o.frec).id, mes: o.mes != null ? String(o.mes) : "" }; }
   function defaults() {
     return {
       nombre: "", fuentes: [nuevaFuente()],
       obj: "", objOtro: "", meta: "", metaTiene: "", plazo: 12, ahorroEmerg: "", deudaTotal: "",
       gastos: {}, gastosExtra: [],
-      pct: presetMes("ninguno"), pctTocado: false, pctReales: false, pctAuto: false, provisionMes: 0, realNota: "",
-      inflacion: String(INF_DEFAULT),
+      pct: presetMes("ninguno"), pctTocado: false, pctReales: false, pctAuto: false, provisionMes: 0, realNota: "", planModo: "real", alcanzado: 1,
+      inflacion: String(INF_DEFAULT), saldoInicial: "",
       paso: 1
     };
   }
   function load() {
     var s = null;
-    try { var raw = localStorage.getItem(KEY); if (raw) s = JSON.parse(raw); } catch (e) { s = null; }
+    var ant = false;
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) { raw = localStorage.getItem(KEY_ANT); ant = !!raw; }
+      if (raw) s = JSON.parse(raw);
+    } catch (e) { s = null; }
     if (!s || typeof s !== "object") return defaults();
     var d = defaults();
     function str(v) { return typeof v === "string" ? v : (typeof v === "number" ? String(v) : ""); }
@@ -954,7 +1093,9 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         f = f || {};
         var pct = null;
         if (f.pct && typeof f.pct === "object") { pct = {}; BOLSAS.forEach(function (b) { pct[b.id] = clamp(Number(f.pct[b.id]) || 0); }); }
-        return nuevaFuente({ tipo: tipoDe(f.tipo) ? f.tipo : "", detalle: str(f.detalle), monto: str(f.monto), frecuencia: freq(f.frecuencia).id, pct: pct, tocado: !!f.tocado && !!pct });
+        var fu = nuevaFuente({ tipo: tipoDe(f.tipo) ? f.tipo : "", detalle: str(f.detalle), monto: str(f.monto), frecuencia: freq(f.frecuencia).id, mes: f.mes != null ? str(f.mes) : "", pct: pct, tocado: !!f.tocado && !!pct });
+        if (f.mes == null) fu.mes = mesDefaultIngreso(fu);
+        return fu;
       });
     }
     d.obj = porId(OBJETIVOS, s.obj) ? s.obj : "";
@@ -962,15 +1103,19 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     d.ahorroEmerg = str(s.ahorroEmerg); d.deudaTotal = str(s.deudaTotal);
     d.plazo = PLAZOS.indexOf(Number(s.plazo)) >= 0 ? Number(s.plazo) : 12;
     if (s.gastos && typeof s.gastos === "object") {
-      GASTOS_BASE.forEach(function (g) { var v = s.gastos[g.id]; if (v && typeof v === "object") d.gastos[g.id] = { monto: str(v.monto), frec: fGasto(v.frec || g.frec).id }; });
+      GASTOS_BASE.forEach(function (g) { var v = s.gastos[g.id]; if (v && typeof v === "object") { d.gastos[g.id] = { monto: str(v.monto), frec: fGasto(v.frec || g.frec).id }; if (v.mes != null) d.gastos[g.id].mes = str(v.mes); if (v.no) d.gastos[g.id].no = true; } });
     }
-    if (Array.isArray(s.gastosExtra)) d.gastosExtra = s.gastosExtra.map(function (x) { x = x || {}; return nuevoGastoExtra({ label: str(x.label), rubro: x.rubro, monto: str(x.monto), frec: x.frec }); });
+    if (Array.isArray(s.gastosExtra)) d.gastosExtra = s.gastosExtra.map(function (x) { x = x || {}; return nuevoGastoExtra({ label: str(x.label), rubro: x.rubro, monto: str(x.monto), frec: x.frec, mes: str(x.mes) }); });
     d.pctTocado = !!s.pctTocado; d.pctReales = !!s.pctReales; d.pctAuto = !!s.pctAuto;
+    d.planModo = ["real", "sugerido", "manual"].indexOf(s.planModo) >= 0 ? s.planModo : "real";
     d.provisionMes = Number(s.provisionMes) || 0; d.realNota = str(s.realNota);
     d.pct = presetMes(tipoObjDe(d.obj));
     if (s.pct && typeof s.pct === "object") RUBROS.forEach(function (r) { var v = Number(s.pct[r.id]); if (isFinite(v)) d.pct[r.id] = clamp(v); });
     d.inflacion = str(s.inflacion) || String(INF_DEFAULT);
-    d.paso = [1, 2, 3, 4, 5, 6].indexOf(s.paso) >= 0 ? s.paso : 1;
+    d.saldoInicial = str(s.saldoInicial);
+    d.paso = [1, 2, 3, 4, 5, 6, 7].indexOf(s.paso) >= 0 ? s.paso : 1;
+    if (ant && d.paso >= 4) d.paso = Math.min(7, d.paso + 1);
+    d.alcanzado = Math.max(1, Math.min(7, Number(s.alcanzado) || d.paso));
     return d;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* sin almacenamiento */ } }
@@ -1004,6 +1149,49 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     return t ? t.label : "Ingreso " + (state.fuentes.indexOf(f) + 1);
   }
   function fuentePorId(id) { for (var i = 0; i < state.fuentes.length; i++) if (String(state.fuentes[i].id) === String(id)) return state.fuentes[i]; return null; }
+
+  /* Meses: en qué mes cae lo que no es de cada mes */
+  function capital(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function necesitaMes(frec) { return frec === "bimestral" || frec === "semestral" || frec === "anual" || frec === "unica"; }
+  function opcionesMes(frec) {
+    if (frec === "bimestral") return [{ v: "0", label: "Enero, marzo, mayo, julio, septiembre y noviembre" }, { v: "1", label: "Febrero, abril, junio, agosto, octubre y diciembre" }];
+    if (frec === "semestral") return [0, 1, 2, 3, 4, 5].map(function (i) { return { v: String(i), label: capital(MESES[i]) + " y " + MESES[i + 6] }; });
+    return MESES.map(function (m, i) { return { v: String(i), label: capital(m) }; });
+  }
+  function textoMeses(frec, mes) {
+    var m = Number(mes);
+    if (frec === "bimestral") return m === 0 ? "enero, marzo, mayo, julio, septiembre y noviembre" : "febrero, abril, junio, agosto, octubre y diciembre";
+    if (frec === "semestral") return MESES[m] + " y " + MESES[m + 6];
+    return MESES[m];
+  }
+  function ocurre(frec, mes, cm) {
+    var m = Number(mes);
+    if (frec === "bimestral") return ((cm - m) % 2 + 2) % 2 === 0;
+    if (frec === "semestral") return cm === m || cm === m + 6;
+    return cm === m;
+  }
+  function mesDefaultIngreso(f) {
+    if (!necesitaMes(f.frecuencia)) return "";
+    var t = tipoDe(f.tipo);
+    if (t && t.mes != null && t.frec === f.frecuencia) return t.mes;
+    if (f.frecuencia === "bimestral") return "0";
+    if (f.frecuencia === "unica") return String(new Date().getMonth());
+    return "";
+  }
+  function opcionesMesHtml(frec, vacio) {
+    return '<option value="">' + vacio + "</option>" + opcionesMes(frec).map(function (o) { return '<option value="' + o.v + '">' + esc(o.label) + "</option>"; }).join("");
+  }
+  function pintarMesFuente(card, f) {
+    var box = card.querySelector("[data-mes-campo]");
+    if (!box) return;
+    var nec = necesitaMes(f.frecuencia);
+    box.hidden = !nec;
+    if (!nec) return;
+    box.querySelector("[data-mes-label]").textContent = f.frecuencia === "bimestral" ? "¿En qué meses llega?" : "¿En qué mes llega?";
+    var sel = box.querySelector("select");
+    sel.innerHTML = opcionesMesHtml(f.frecuencia, "Elija el mes…");
+    sel.value = f.mes || "";
+  }
 
   /* Texto de uso recomendado para cada ingreso */
   function usoTexto(f) {
@@ -1058,14 +1246,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function gastoItems() {
     var out = GASTOS_BASE.map(function (g) {
       var v = state.gastos[g.id] || {};
-      return { key: g.id, label: g.label, rubro: g.rubro, monto: parseMonto(v.monto), frec: v.frec || g.frec };
+      return { key: g.id, label: g.label, rubro: g.rubro, monto: v.no ? 0 : parseMonto(v.monto), frec: v.frec || g.frec, mesPago: mesGastoBase(g, v) };
     });
     state.gastosExtra.forEach(function (x) {
-      out.push({ key: "x" + x.id, label: x.label.trim() || "Otro gasto", rubro: x.rubro, monto: parseMonto(x.monto), frec: x.frec, custom: true });
+      out.push({ key: "x" + x.id, label: x.label.trim() || "Otro gasto", rubro: x.rubro, monto: parseMonto(x.monto), frec: x.frec, mesPago: x.mes || "", custom: true });
     });
     return out;
   }
-  function esGrande(frec) { return frec === "anual" || frec === "semestral"; }
+  function mesGastoBase(g, v) {
+    v = v || {};
+    var frec = v.frec || g.frec;
+    if (v.mes != null) return String(v.mes);
+    return frec === g.frec && g.mes != null ? g.mes : "";
+  }
+  function esGrande(frec) { return frec === "anual" || frec === "semestral" || frec === "unica"; }
   function resumenGastos() {
     var porRubro = {}, mes = 0, grandes = 0;
     RUBROS.forEach(function (r) { porRubro[r.id] = { mes: 0, grandes: 0 }; });
@@ -1097,7 +1291,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   }
   function pctFuente(f) { if (!f.tocado || !f.pct) f.pct = presetFuente(f); return f.pct; }
 
-  var REP_MES = { items: rubrosVisibles, pct: function () { return state.pct; }, base: baseMes, unidad: "al mes", cosa: "algún rubro", marcar: function () { state.pctTocado = true; state.pctAuto = false; } };
+  var REP_MES = { items: rubrosVisibles, pct: function () { return state.pct; }, base: baseMes, unidad: "al mes", cosa: "algún rubro", marcar: function () { state.pctTocado = true; state.pctAuto = false; state.planModo = "manual"; } };
   function rep(g) {
     if (g === "mes") return REP_MES;
     var f = fuentePorId(g.slice(1));
@@ -1125,10 +1319,12 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var pill = esDelObjetivo(g, it.id) ? '<span class="pill">Su objetivo</span>' : "";
     var u = g === "mes" ? "al mes" : "por pago";
     var key = g + "-" + it.id;
+    var chip = opt.chip ? '<span class="chip-v" data-e="' + opt.chip.e + '">' + esc(opt.chip.txt) + "</span>" : "";
     card.innerHTML =
-      '<div class="rubro-info"><' + tag + ' class="item-t"><span class="sw" aria-hidden="true"></span><span>' + esc(nombre) + "</span>" + pill + "</" + tag + ">" +
+      '<div class="rubro-info"><' + tag + ' class="item-t"><span class="sw" aria-hidden="true"></span><span>' + esc(nombre) + "</span>" + pill + chip + "</" + tag + ">" +
         (opt.sinDesc ? "" : "<p>" + esc(it.desc) + "</p>") +
         (opt.real ? '<p class="real">' + opt.real + "</p>" : "") +
+        (opt.extraHtml || "") +
       "</div>" +
       '<div class="rubro-ctrl">' +
         '<div class="ctrl">' +
@@ -1144,7 +1340,12 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
           '<label for="monto-' + key + '">En pesos ' + u + "</label>" +
           '<div class="dinero"><span aria-hidden="true">$</span><input class="input monto-input" id="monto-' + key + '" data-g="' + g + '" data-id="' + it.id + '" data-k="monto" type="text" inputmode="decimal" autocomplete="off"></div>' +
         "</div>" +
-      "</div>";
+      "</div>" +
+      (opt.dif ? '<p class="dif" id="dif-' + it.id + '"></p>' : "");
+    if (g === "mes") {
+      card.querySelector('label[for="pct-' + key + '"]').textContent = "Su plan en %";
+      card.querySelector('label[for="monto-' + key + '"]').textContent = "Su plan en pesos al mes";
+    }
     return card;
   }
 
@@ -1163,8 +1364,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   function renderRepartoMes() {
     var cont = $("#rubros");
     cont.textContent = "";
-    var vis = rubrosVisibles(), rg = resumenGastos();
-    var prov = Math.max(0, rg.grandes - anualesExtras()) / 12;
+    var vis = rubrosVisibles(), R = gastosRealesMes();
     GRUPOS.forEach(function (gr) {
       var items = vis.filter(function (r) { return r.grupo === gr.id; });
       if (!items.length) return;
@@ -1173,12 +1373,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       head.innerHTML = "<h3>" + esc(gr.titulo) + "</h3><p>" + esc(gr.desc) + '</p><p class="grupo-suma" id="gs-' + gr.id + '"></p>';
       cont.appendChild(head);
       items.forEach(function (r) {
-        var real = "";
-        if (rg.hay) {
-          var pr = rg.porRubro[r.id], m = pr.mes + (rg.grandes > 0 ? prov * pr.grandes / rg.grandes : 0);
-          if (m > 0.5) real = "Según su hoja de gastos: <strong>" + money(m) + "</strong> al mes" + (pr.grandes > 0 && prov > 0 ? " (incluye lo que debe apartar para sus pagos grandes)" : "");
+        var html = "", chip = null;
+        if (R.hay && R.base > 0) {
+          var m = R.porRubro[r.id], rg = rango(r.id);
+          if (r.id === "ahorro" || r.id === "meta") {
+            if (rg.min != null) html = '<p class="real">Recomendado: <strong>' + textoRango(rg) + "</strong> de su ingreso (" + money(rg.min * R.base / 100) + " al mes).</p>";
+          } else {
+            var v = veredicto(r.id, m, R.base);
+            html = '<p class="real">Hoy gasta: <strong>' + money(m) + "</strong> al mes, <strong>" + fmtPct(m / R.base * 100) + "</strong> de su ingreso" +
+              (R.prov > 0.5 && R.grandes[r.id] > 0 ? " (incluye lo que debe apartar para sus pagos grandes)" : "") + ".</p>";
+            if (textoRango(rg)) html += '<p class="real">Recomendado: ' + textoRango(rg) + (rg.max != null ? " (hasta " + money(rg.max * R.base / 100) + ")" : " (" + money(rg.min * R.base / 100) + ")") + ".</p>";
+            if (v) { chip = v; var ct = consejoTxt(r.id, v, m, R.base); if (ct) html += '<p class="consejo" data-e="' + v.e + '">' + esc(ct) + "</p>"; }
+          }
         }
-        cont.appendChild(tarjetaItem("mes", r, { real: real }));
+        cont.appendChild(tarjetaItem("mes", r, { extraHtml: html, chip: chip, dif: R.hay }));
       });
     });
     syncCampos(null);
@@ -1260,6 +1468,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var p = rubrosVisibles().filter(function (x) { return x.grupo === gr.id; }).reduce(function (a, x) { return a + (state.pct[x.id] || 0); }, 0);
         el.textContent = fmtPct(p) + " de su ingreso · " + money(base * p / 100) + " al mes";
       });
+      updateDifs();
     }
   }
 
@@ -1291,6 +1500,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     syncCampos(document.activeElement);
     updateResumen(g);
     if (g !== "mes") updateCobertura();
+    else renderDiagnostico();
   }
 
   document.addEventListener("click", function (e) {
@@ -1322,48 +1532,187 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   document.addEventListener("focusin", function (e) { var el = e.target; if (el.tagName === "INPUT" && (el.getAttribute("data-g") || el.id === "inflacion")) { try { el.select(); } catch (err) { /* nada */ } } });
 
   $("#btn-sugerido-mes").addEventListener("click", function () {
-    state.pct = presetMes(tipoObj()); state.pctTocado = true; state.pctAuto = false; state.pctReales = false; state.provisionMes = 0; state.realNota = "";
-    save(); $("#p4-real-nota").hidden = true; renderRepartoMes();
-  });
-  $("#btn-usar-reales").addEventListener("click", function () {
-    if (aplicarGastosReales()) { mostrarNotaReal(); renderRepartoMes(); }
+    state.pct = presetMes(tipoObj()); state.pctTocado = true; state.pctAuto = false; state.pctReales = false; state.planModo = "manual"; state.provisionMes = 0; state.realNota = "";
+    save(); renderRepartoMes();
   });
 
-  /* Llena el reparto del mes con la hoja de gastos */
-  function aplicarGastosReales() {
-    var rg = resumenGastos(), base = baseMes();
-    if (!rg.hay || base <= 0) return false;
+  /* =========================================================
+     Gastos de hoy contra lo recomendado (paso 5)
+     ========================================================= */
+  function r4(n) { return Math.round(n * 10000) / 10000; }
+  /* Rangos de referencia, en % del dinero de cada mes */
+  function rango(id) {
     var t = tipoObj();
+    var R = {
+      vivienda: { max: 30 }, servicios: { max: 10 }, comida: { max: 25 }, salud: { min: 8, max: 15 },
+      transporte: { max: 10 }, personal: { max: 5 }, deudas: t === "deudas" ? {} : { max: 15 },
+      familia: { max: 10 }, gustos: { max: 8 }, otros: { max: 5 },
+      ahorro: { min: t === "meta" ? 5 : 10 }, meta: { min: 5 }
+    };
+    return R[id] || {};
+  }
+  function textoRango(rg) {
+    if (rg.min != null && rg.max != null) return "entre " + rg.min + "% y " + rg.max + "%";
+    if (rg.max != null) return "hasta " + rg.max + "%";
+    if (rg.min != null) return "al menos " + rg.min + "%";
+    return "";
+  }
+  /* Lo que gasta hoy en cada rubro, al mes, según la hoja (incluye lo que debe apartar para pagos grandes que no cubre el dinero extra) */
+  function gastosRealesMes() {
+    var rg = resumenGastos(), base = baseMes();
     var prov = Math.max(0, rg.grandes - anualesExtras()) / 12;
-    var p = {};
-    RUBROS.forEach(function (r) {
-      var pr = rg.porRubro[r.id];
-      var m = pr.mes + (rg.grandes > 0 ? prov * pr.grandes / rg.grandes : 0);
-      p[r.id] = m / base * 100;
+    var r = {}, grandes = {}, total = 0;
+    RUBROS.forEach(function (x) {
+      var pr = rg.porRubro[x.id];
+      r[x.id] = pr.mes + (rg.grandes > 0 ? prov * pr.grandes / rg.grandes : 0);
+      grandes[x.id] = pr.grandes;
+      total += r[x.id];
     });
-    if (t !== "meta") p.meta = 0;
-    var sum = RUBROS.reduce(function (a, r) { return a + p[r.id]; }, 0);
-    var sobra = 100 - sum, destino;
-    if (sobra > 0.005) {
-      if (t === "meta") { p.ahorro += sobra / 2; p.meta += sobra / 2; destino = "su ahorro para emergencias y su objetivo, mitad y mitad"; }
-      else if (t === "deudas" && p.deudas > 0) { p.deudas += sobra; destino = "el pago de sus deudas"; }
-      else { p.ahorro += sobra; destino = "su ahorro para emergencias"; }
+    return { porRubro: r, grandes: grandes, total: total, prov: prov, base: base, queda: base - total, hay: rg.hay };
+  }
+  function veredicto(id, monto, base) {
+    if (id === "ahorro" || id === "meta" || base <= 0) return null;
+    var rg = rango(id), pr = monto / base * 100;
+    if (monto < 0.5 && rg.min == null) return null;
+    if (rg.max != null && pr > rg.max * 1.25) return { e: "muy-alto", txt: "Muy alto", pr: pr, rg: rg };
+    if (rg.max != null && pr > rg.max + 0.05) return { e: "alto", txt: "Alto", pr: pr, rg: rg };
+    if (rg.min != null && pr < rg.min - 0.05) return { e: "bajo", txt: "Bajo", pr: pr, rg: rg };
+    return { e: "bien", txt: "Bien", pr: pr, rg: rg };
+  }
+  /* Cuánto mover: bajar poco a poco lo alto (como máximo 10% de lo que gasta hoy) y subir lo bajo hasta el mínimo */
+  function ajusteSugerido(id, monto, base) {
+    if (id === "deudas") return 0;
+    var v = veredicto(id, monto, base);
+    if (!v) return 0;
+    if (v.e === "alto" || v.e === "muy-alto") return -Math.min(monto - v.rg.max * base / 100, monto * 0.1);
+    if (v.e === "bajo") return v.rg.min * base / 100 - monto;
+    return 0;
+  }
+  function consejoTxt(id, v, m, base) {
+    if (v.e === "bien") return m > 0.5 ? "Va bien." : "";
+    if (id === "deudas") return "Es alto. Concéntrese en liquidar primero la deuda que cobra más interés para bajar este pago.";
+    var aj = ajusteSugerido(id, m, base);
+    if (v.e === "bajo") return "Es bajo. Si su dinero lo permite, súbale " + money(aj) + " al mes.";
+    var tope = v.rg.max * base / 100;
+    var txt = "Es " + (v.e === "muy-alto" ? "muy alto" : "alto") + ". Para empezar, baje unos " + money(-aj) + " al mes";
+    if (m + aj > tope + 1) txt += ", y poco a poco llegue a " + money(tope);
+    return txt + ".";
+  }
+  function repartirSobrante(p, queda, t) {
+    if (t === "meta") { p.ahorro += queda / 2; p.meta += queda / 2; }
+    else if (t === "deudas" && p.deudas > 0) { p.deudas += queda * 0.6; p.ahorro += queda * 0.4; }
+    else p.ahorro += queda;
+  }
+  function planSugerido(R) {
+    var base = R.base, t = tipoObj(), p = {}, gasto = 0, subir = [];
+    RUBROS.forEach(function (x) {
+      p[x.id] = 0;
+      if (x.id === "ahorro" || x.id === "meta") return;
+      var m = R.porRubro[x.id], aj = ajusteSugerido(x.id, m, base);
+      if (aj > 0) { subir.push({ id: x.id, aj: aj }); aj = 0; }
+      p[x.id] = m + aj;
+      gasto += p[x.id];
+    });
+    var queda = base - gasto;
+    subir.forEach(function (s) { if (queda - s.aj >= base * 0.05) { p[s.id] += s.aj; queda -= s.aj; } });
+    if (queda > 0) repartirSobrante(p, queda, t);
+    var pct = {};
+    RUBROS.forEach(function (x) { pct[x.id] = base > 0 ? clamp(r4(p[x.id] / base * 100)) : 0; });
+    return { pct: pct, queda: queda };
+  }
+  /* Arma el plan del mes desde la hoja de gastos: "real" = tal como gasta hoy, "sugerido" = con nuestros ajustes */
+  function aplicarPlan(modo) {
+    var R = gastosRealesMes();
+    if (!R.hay || R.base <= 0) return false;
+    var pct;
+    if (modo === "sugerido") pct = planSugerido(R).pct;
+    else {
+      var p = {};
+      RUBROS.forEach(function (x) { p[x.id] = x.id === "ahorro" || x.id === "meta" ? 0 : R.porRubro[x.id]; });
+      if (R.queda > 0) repartirSobrante(p, R.queda, tipoObj());
+      pct = {};
+      RUBROS.forEach(function (x) { pct[x.id] = clamp(r4(p[x.id] / R.base * 100)); });
     }
-    RUBROS.forEach(function (r) { p[r.id] = clamp(round2(p[r.id] * 100) / 100); });
-    var nota = "Llenamos cada rubro con lo que anotó en su hoja de gastos";
-    if (prov > 0.5) nota += ", más " + money(prov) + " al mes para los pagos grandes que no alcanza a cubrir su dinero extra";
-    nota += ". Los rubros que dejó en blanco quedaron en $0; si sí gasta en ellos, súbales. ";
-    if (sobra > 0.005) nota += "Lo que le sobra (" + money(sobra * base / 100) + " al mes) lo pusimos en " + destino + ".";
-    else nota += "Sus gastos de hoy superan su dinero de cada mes por " + money(-sobra * base / 100) + ". Revise en qué puede recortar.";
-    state.pct = p; state.pctTocado = true; state.pctReales = true; state.pctAuto = true; state.provisionMes = prov; state.realNota = nota;
+    state.pct = pct; state.pctTocado = true; state.pctReales = true; state.planModo = modo; state.provisionMes = R.prov;
     save();
     return true;
   }
-  function mostrarNotaReal() {
-    var n = $("#p4-real-nota");
-    n.textContent = state.realNota;
-    n.hidden = !(state.pctReales && state.realNota);
+  function updateDifs() {
+    var R = gastosRealesMes();
+    if (!R.hay) return;
+    rubrosVisibles().forEach(function (r) {
+      var el = document.getElementById("dif-" + r.id);
+      if (!el) return;
+      var plan = R.base * (state.pct[r.id] || 0) / 100, real = R.porRubro[r.id], d = plan - real, txt, e = "";
+      if (r.id === "ahorro" || r.id === "meta") txt = "Su plan aparta " + money(plan) + " al mes.";
+      else if (Math.abs(d) < 1) txt = "Su plan: igual que hoy.";
+      else { txt = "Su plan: " + money(Math.abs(d)) + (d < 0 ? " menos" : " más") + " que hoy."; e = d < 0 ? "baja" : "sube"; }
+      el.textContent = txt;
+      if (e) el.setAttribute("data-e", e); else el.removeAttribute("data-e");
+    });
   }
+  function renderDiagnostico() {
+    var box = $("#p5-diag"), R = gastosRealesMes();
+    box.textContent = "";
+    if (!R.hay || R.base <= 0) { box.hidden = true; return; }
+    box.hidden = false;
+    var pctGasto = R.total / R.base * 100, pctQueda = R.queda / R.base * 100;
+    var h = document.createElement("h3");
+    h.textContent = "Así está hoy su dinero de cada mes";
+    box.appendChild(h);
+    var nums = document.createElement("div");
+    nums.className = "diag-nums";
+    var eq = R.queda >= R.base * 0.1 ? "ok" : R.queda > 0 ? "ojo" : "mal";
+    nums.innerHTML = "<div><span>Recibe</span><strong>" + money(R.base) + "</strong><small>al mes</small></div>" +
+      "<div><span>Gasta</span><strong>" + money(R.total) + "</strong><small>" + fmtPct(pctGasto) + " de su ingreso</small></div>" +
+      '<div data-e="' + eq + '"><span>' + (R.queda >= 0 ? "Le queda para ahorrar" : "Le falta") + "</span><strong>" + money(Math.abs(R.queda)) + "</strong><small>" + fmtPct(Math.abs(pctQueda)) + " de su ingreso</small></div>";
+    box.appendChild(nums);
+    var msg;
+    if (R.queda < -0.5) msg = { e: "ojo", txt: "Gasta " + money(-R.queda) + " más de lo que recibe cada mes. Necesita bajar gastos para no endeudarse." };
+    else if (pctQueda < 10) msg = { e: "ojo", txt: "Le queda poco para ahorrar: " + fmtPct(Math.max(0, pctQueda)) + " de su ingreso. Lo recomendado es al menos 10% (" + money(R.base * 0.1) + " al mes)." };
+    else msg = { e: "ok", txt: "Va bien: le queda " + fmtPct(pctQueda) + " de su ingreso para ahorro y su objetivo." };
+    box.appendChild(estadoEl(msg));
+    var notas = [];
+    RUBROS.forEach(function (x) {
+      var m = R.porRubro[x.id], v = veredicto(x.id, m, R.base);
+      if (!v || v.e === "bien") return;
+      notas.push({ d: Math.abs(ajusteSugerido(x.id, m, R.base)) + (v.e === "muy-alto" ? 100000 : 0), txt: x.nombre + ": " + fmtPct(v.pr) + " de su ingreso (lo recomendado es " + textoRango(v.rg) + "). " + consejoTxt(x.id, v, m, R.base) });
+    });
+    if (notas.length) {
+      var p1 = document.createElement("p");
+      p1.className = "lbl";
+      p1.textContent = "Dónde puede ajustar:";
+      box.appendChild(p1);
+      var ul = document.createElement("ul");
+      notas.sort(function (a, b) { return b.d - a.d; }).forEach(function (n) { var li = document.createElement("li"); li.textContent = n.txt; ul.appendChild(li); });
+      box.appendChild(ul);
+    } else {
+      var ok = document.createElement("p");
+      ok.textContent = "Todos sus gastos están dentro de lo recomendado.";
+      box.appendChild(ok);
+    }
+    var S = planSugerido(R), mejora = S.queda - R.queda, haySug = notas.length > 0;
+    if (haySug && mejora > 0.5) {
+      var p2 = document.createElement("p");
+      p2.textContent = "Si sigue nuestras sugerencias, le quedarían " + money(Math.max(0, S.queda)) + " al mes (" + fmtPct(Math.max(0, S.queda) / R.base * 100) + ") para ahorro: " + money(mejora) + " más que hoy.";
+      box.appendChild(p2);
+    }
+    var modo = state.planModo || "real";
+    var mp = document.createElement("p");
+    mp.className = "diag-modo";
+    mp.textContent = { real: "Su plan usa sus gastos tal como están hoy.", sugerido: "Su plan usa nuestras sugerencias.", manual: "Su plan tiene sus propios cambios." }[modo];
+    box.appendChild(mp);
+    var acc = document.createElement("div");
+    acc.className = "acciones-btn";
+    if (haySug) acc.innerHTML += '<button type="button" class="btn btn-primario" data-plan="sugerido"' + (modo === "sugerido" ? " disabled" : "") + ">" + (modo === "sugerido" ? "Sugerencias aplicadas" : "Aplicar las sugerencias") + "</button>";
+    acc.innerHTML += '<button type="button" class="btn btn-secundario" data-plan="real"' + (modo === "real" ? " disabled" : "") + ">Usar mis gastos como están</button>";
+    box.appendChild(acc);
+  }
+  $("#p5-diag").addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-plan]") : null;
+    if (!b || b.disabled) return;
+    if (aplicarPlan(b.getAttribute("data-plan"))) { renderDiagnostico(); renderRepartoMes(); }
+  });
 
   /* =========================================================
      Tamaño de letra
@@ -1404,11 +1753,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
             '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="fm-' + n + '" data-campo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
           '<div class="campo"><label for="ff-' + n + '">¿Cada cuándo lo recibe?</label><select class="input" id="ff-' + n + '" data-campo="frecuencia">' + optsFrec + "</select></div>" +
         "</div>" +
+        '<div class="campo" data-mes-campo hidden><label for="fmes-' + n + '" data-mes-label>¿En qué mes llega?</label><select class="input" id="fmes-' + n + '" data-campo="mes"></select></div>' +
         '<div class="uso" data-uso><span class="uso-t" data-uso-t></span><span data-uso-txt></span><span class="uso-eq" data-uso-eq></span></div>';
       card.querySelector('[data-campo="tipo"]').value = f.tipo;
       card.querySelector('[data-campo="detalle"]').value = f.detalle;
       card.querySelector('[data-campo="monto"]').value = f.monto;
       card.querySelector('[data-campo="frecuencia"]').value = f.frecuencia;
+      pintarMesFuente(card, f);
       cont.appendChild(card);
     });
     $("#nombre").value = state.nombre;
@@ -1432,7 +1783,11 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       var t = tipoDe(el.value);
       if (t) { hit.f.frecuencia = t.frec; hit.card.querySelector('[data-campo="frecuencia"]').value = t.frec; }
     }
-    if (e.type === "change" && (campo === "tipo" || campo === "frecuencia")) { hit.f.tocado = false; hit.f.pct = null; }
+    if (e.type === "change" && (campo === "tipo" || campo === "frecuencia")) {
+      hit.f.tocado = false; hit.f.pct = null;
+      hit.f.mes = mesDefaultIngreso(hit.f);
+      pintarMesFuente(hit.card, hit.f);
+    }
     save();
     updateTotales();
   }
@@ -1471,7 +1826,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       nuevaFuente({ tipo: "pension-imss", monto: "9,800", frecuencia: "mensual" }),
       nuevaFuente({ tipo: "renta", detalle: "Renta de un cuarto", monto: "2,500", frecuencia: "mensual" }),
       nuevaFuente({ tipo: "apoyo", monto: "1,000", frecuencia: "quincenal" }),
-      nuevaFuente({ tipo: "aguinaldo", monto: "9,800", frecuencia: "anual" })
+      nuevaFuente({ tipo: "aguinaldo", monto: "9,800", frecuencia: "anual", mes: "11" })
     ];
     save();
     renderFuentes();
@@ -1492,12 +1847,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         if (d === "diario" && f.frecuencia !== "mensual") eq = "Equivale a " + money(anualDe(f) / 12) + " al mes.";
         else if (d === "extra" && freq(f.frecuencia).porAnio > 1) eq = "Suma " + money(anualDe(f)) + " al año.";
       }
+      if (necesitaMes(f.frecuencia)) eq = (eq ? eq + " " : "") + (f.mes === "" ? "Elija el mes para verlo en su flujo del año." : "Llega en " + textoMeses(f.frecuencia, f.mes) + ".");
       var eqEl = card.querySelector("[data-uso-eq]");
       eqEl.textContent = eq;
       eqEl.hidden = !eq;
     });
-    if (totalAnual() > 0) $("#err-ingreso").hidden = true;
     $("#btn-ejemplo").hidden = totalAnual() > 0;
+    pintarErrores(1);
     updateStepper();
   }
 
@@ -1543,6 +1899,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var r3 = 3 * basicosMes();
     reco.hidden = !(t === "emergencias" && r3 > 0);
     if (!reco.hidden) reco.textContent = "Usar lo recomendado: " + money(r3);
+    pintarErrores(2);
+    updateStepper();
     if (t !== "meta" && t !== "emergencias" && t !== "deudas") { box.hidden = true; return; }
     var b = bindings(), meta = parseMonto(state[b.meta]), tiene = t === "deudas" ? 0 : parseMonto(state[b.tiene]), txt;
     if (t === "emergencias" && !meta) txt = "Le recomendamos juntar al menos 3 meses de sus gastos indispensables: " + money(r3) + ". Si no escribe otra cantidad, usaremos esa.";
@@ -1558,7 +1916,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   }
   $("#obj-meta").addEventListener("input", function (e) { state[bindings().meta] = e.target.value; save(); updateCalcObj(); });
   $("#obj-tiene").addEventListener("input", function (e) { state[bindings().tiene] = e.target.value; save(); updateCalcObj(); });
-  $("#obj-otro").addEventListener("input", function (e) { state.objOtro = e.target.value; save(); });
+  $("#obj-otro").addEventListener("input", function (e) { state.objOtro = e.target.value; save(); pintarErrores(2); updateStepper(); });
   $("#obj-plazo").addEventListener("change", function (e) { state.plazo = Number(e.target.value) || 12; save(); updateCalcObj(); });
   $("#sit-emerg").addEventListener("input", function (e) { state.ahorroEmerg = e.target.value; save(); });
   $("#sit-deuda").addEventListener("input", function (e) { state.deudaTotal = e.target.value; save(); });
@@ -1578,17 +1936,39 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
      Paso 3: hoja de gastos
      ========================================================= */
   function optsFrecGasto() { return FREC_GASTO.map(function (q) { return '<option value="' + q.id + '">' + q.label + "</option>"; }).join(""); }
-  function filaGasto(key, label, monto, frec) {
+  function aplicarNo(row, no) {
+    if (!row) return;
+    row.classList.toggle("es-no", no);
+    Array.prototype.forEach.call(row.querySelectorAll('[data-gcampo="monto"], [data-gcampo="frec"], [data-gcampo="mes"]'), function (el) { el.disabled = no; });
+  }
+  function filaGasto(key, label, monto, frec, mes, no) {
     var d = document.createElement("div");
     d.className = "gasto";
+    d.setAttribute("data-row", key);
     d.innerHTML =
-      '<label for="gm-' + key + '">' + esc(label) + '<span class="grande" data-grande hidden>Pago grande del año</span></label>' +
+      '<div class="g-nombre"><label for="gm-' + key + '">' + esc(label) + '<span class="grande" data-grande hidden>Pago grande del año</span></label>' +
+        '<label class="nolo"><input type="checkbox" data-gasto="' + key + '" data-gcampo="no"> No lo pago</label></div>' +
       '<div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>' +
-      '<select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec" aria-label="Cada cuándo paga ' + esc(label) + '">' + optsFrecGasto() + "</select>";
+      '<select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec" aria-label="Cada cuándo paga ' + esc(label) + '">' + optsFrecGasto() + "</select>" +
+      '<select class="input g-mes" id="gmes-' + key + '" data-gasto="' + key + '" data-gcampo="mes" aria-label="Mes en que paga ' + esc(label) + '"></select>';
     d.querySelector('[data-gcampo="monto"]').value = monto;
     d.querySelector('[data-gcampo="frec"]').value = frec;
     d.querySelector("[data-grande]").hidden = !esGrande(frec);
+    pintarMesGasto(d, frec, mes);
+    d.querySelector('[data-gcampo="no"]').checked = !!no;
+    aplicarNo(d, !!no);
     return d;
+  }
+  function pintarMesGasto(row, frec, mes) {
+    if (!row) return;
+    var sel = row.querySelector('[data-gcampo="mes"]');
+    if (!sel) return;
+    var nec = necesitaMes(frec), wrap = sel.closest(".campo-mes");
+    sel.hidden = !nec;
+    if (wrap) wrap.hidden = !nec;
+    if (!nec) return;
+    sel.innerHTML = opcionesMesHtml(frec, frec === "bimestral" ? "¿En qué meses paga? Elija…" : frec === "semestral" ? "¿En qué meses paga? Elija…" : "¿En qué mes paga? Elija…");
+    sel.value = mes || "";
   }
   function renderGastos() {
     var cont = $("#gastos");
@@ -1600,7 +1980,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       box.className = "g-grupo";
       box.style.setProperty("--c", "var(" + r.color + ")");
       box.innerHTML = '<div class="g-head"><h3><span class="sw" aria-hidden="true"></span>' + esc(r.nombre) + '</h3><span class="g-sub" id="gsub-' + r.id + '"></span></div>';
-      items.forEach(function (g) { var v = state.gastos[g.id] || {}; box.appendChild(filaGasto(g.id, g.label, v.monto || "", v.frec || g.frec)); });
+      items.forEach(function (g) { var v = state.gastos[g.id] || {}; box.appendChild(filaGasto(g.id, g.label, v.no ? "" : v.monto || "", v.frec || g.frec, mesGastoBase(g, v), !!v.no)); });
       cont.appendChild(box);
     });
     if (state.gastosExtra.length) {
@@ -1613,16 +1993,19 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var key = "x" + x.id;
         var d = document.createElement("div");
         d.className = "gasto gasto-x";
+        d.setAttribute("data-row", key);
         d.innerHTML =
           '<div class="gx-top"><span class="lbl">Otro gasto</span><button type="button" class="btn-quitar" data-quitar-gasto="' + x.id + '">Quitar</button></div>' +
           '<div class="campo"><label for="gl-' + key + '">¿Qué es?</label><input class="input" id="gl-' + key + '" data-gasto="' + key + '" data-gcampo="label" type="text" maxlength="50" autocomplete="off" placeholder="Por ejemplo: clases de pintura"></div>' +
           '<div class="campo"><label for="gr-' + key + '">¿En qué rubro va?</label><select class="input" id="gr-' + key + '" data-gasto="' + key + '" data-gcampo="rubro">' + optsR + "</select></div>" +
           '<div class="campo"><label for="gm-' + key + '">¿Cuánto paga?</label><div class="dinero"><span aria-hidden="true">$</span><input class="input" id="gm-' + key + '" data-gasto="' + key + '" data-gcampo="monto" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>' +
-          '<div class="campo"><label for="gf-' + key + '">¿Cada cuándo?</label><select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec">' + optsFrecGasto() + "</select></div>";
+          '<div class="campo"><label for="gf-' + key + '">¿Cada cuándo?</label><select class="input" id="gf-' + key + '" data-gasto="' + key + '" data-gcampo="frec">' + optsFrecGasto() + "</select></div>" +
+          '<div class="campo campo-mes"><label for="gmes-' + key + '">¿En qué mes?</label><select class="input" id="gmes-' + key + '" data-gasto="' + key + '" data-gcampo="mes"></select></div>';
         d.querySelector('[data-gcampo="label"]').value = x.label;
         d.querySelector('[data-gcampo="rubro"]').value = x.rubro;
         d.querySelector('[data-gcampo="monto"]').value = x.monto;
         d.querySelector('[data-gcampo="frec"]').value = x.frec;
+        pintarMesGasto(d, x.frec, x.mes);
         box.appendChild(d);
       });
       cont.appendChild(box);
@@ -1634,16 +2017,35 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var el = e.target, key = el.getAttribute && el.getAttribute("data-gasto");
     if (!key) return;
     var campo = el.getAttribute("data-gcampo");
+    var row = el.closest ? el.closest(".gasto") : null;
+    if (campo === "no") {
+      var b0 = porId(GASTOS_BASE, key);
+      if (b0) {
+        var v0 = state.gastos[key] || { monto: "", frec: b0.frec };
+        v0.no = el.checked;
+        if (el.checked) { v0.monto = ""; var mi = row && row.querySelector('[data-gcampo="monto"]'); if (mi) mi.value = ""; }
+        state.gastos[key] = v0;
+        aplicarNo(row, el.checked);
+      }
+      save();
+      updateGastos();
+      return;
+    }
+    var cambioFrec = campo === "frec" && e.type === "change";
     if (key.charAt(0) === "x") {
       var x = gastoExtraPorKey(key);
-      if (x) x[campo] = el.value;
+      if (x) {
+        x[campo] = el.value;
+        if (cambioFrec) { x.mes = ""; pintarMesGasto(row, x.frec, x.mes); }
+      }
     } else {
       var base = porId(GASTOS_BASE, key);
       var v = state.gastos[key] || { monto: "", frec: base.frec };
       v[campo] = el.value;
+      if (cambioFrec) { v.mes = el.value === base.frec && base.mes != null ? base.mes : ""; pintarMesGasto(row, v.frec, v.mes); }
       state.gastos[key] = v;
     }
-    if (campo === "frec") { var row = el.closest(".gasto"), tag = row && row.querySelector("[data-grande]"); if (tag) tag.hidden = !esGrande(el.value); }
+    if (campo === "frec" && row) { var tag = row.querySelector("[data-grande]"); if (tag) tag.hidden = !esGrande(el.value); }
     save();
     updateGastos();
   }
@@ -1673,14 +2075,15 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (inp) inp.focus();
   });
   $("#btn-ejemplo-gastos").addEventListener("click", function () {
-    var ej = { predial: ["1,800", "anual"], luz: ["900", "bimestral"], agua: ["250", "mensual"], gas: ["450", "mensual"], internet: ["400", "mensual"], celular: ["200", "mensual"],
+    var ej = { predial: ["1,800", "anual", "0"], luz: ["900", "bimestral", "1"], agua: ["250", "mensual"], gas: ["450", "mensual"], internet: ["400", "mensual"], celular: ["200", "mensual"],
       super: ["1,200", "semanal"], fuera: ["600", "mensual"], medicinas: ["800", "mensual"], consultas: ["400", "mensual"], gasolina: ["350", "semanal"],
-      "servicio-auto": ["2,500", "semestral"], "seguro-auto": ["7,500", "anual"], tenencia: ["1,200", "anual"], ropa: ["400", "mensual"], higiene: ["350", "mensual"],
+      "servicio-auto": ["2,500", "semestral", "3"], "seguro-auto": ["7,500", "anual", "8"], tenencia: ["1,200", "anual", "2"], ropa: ["400", "mensual"], higiene: ["350", "mensual"],
       salidas: ["600", "mensual"], suscripciones: ["300", "mensual"], mascotas: ["300", "mensual"] };
     state.gastos = {};
-    for (var k in ej) state.gastos[k] = { monto: ej[k][0], frec: ej[k][1] };
-    state.gastosExtra = [];
-    state.pctTocado = false; state.pctReales = false;
+    for (var k in ej) { state.gastos[k] = { monto: ej[k][0], frec: ej[k][1] }; if (ej[k][2] != null) state.gastos[k].mes = ej[k][2]; }
+    GASTOS_BASE.forEach(function (g) { if (!state.gastos[g.id]) state.gastos[g.id] = { monto: "", frec: g.frec, no: true }; });
+    state.gastosExtra = [nuevoGastoExtra({ label: "Regalos y cena de Navidad", rubro: "familia", monto: "4,000", frec: "anual", mes: "11" })];
+    state.pctTocado = false; state.pctReales = false; state.planModo = "real";
     save();
     renderGastos();
   });
@@ -1692,7 +2095,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       b.removeAttribute("data-armado");
       b.textContent = "Borrar mi hoja de gastos";
       state.gastos = {}; state.gastosExtra = [];
-      if (state.pctReales) { state.pct = presetMes(tipoObj()); state.pctTocado = false; state.pctReales = false; state.provisionMes = 0; state.realNota = ""; }
+      state.pct = presetMes(tipoObj()); state.pctTocado = false; state.pctReales = false; state.planModo = "real"; state.provisionMes = 0; state.realNota = "";
+      mostrar[3] = false;
       save();
       renderGastos();
       return;
@@ -1721,9 +2125,14 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       if (queda >= 0) { est.setAttribute("data-e", "ok"); est.textContent = "De su dinero de cada mes (" + money(base) + "), después de estos gastos le quedan " + money(queda) + " al mes para ahorro, su objetivo y lo que no anotó."; }
       else { est.setAttribute("data-e", "ojo"); est.textContent = "Estos gastos suman " + money(rg.mes) + " al mes, " + money(-queda) + " más que su dinero de cada mes (" + money(base) + "). En los siguientes pasos le ayudamos a ajustar."; }
     } else est.hidden = true;
-    $("#p3-saltar").hidden = rg.hay;
-    $("#btn-borrar-gastos").hidden = !rg.hay && !state.gastosExtra.length;
-    $("#btn-ejemplo-gastos").hidden = rg.hay;
+    var faltan = erroresPaso3(), total = GASTOS_BASE.length + state.gastosExtra.length, listos = total - faltan.length;
+    $("#g-prog-num").textContent = listos + " de " + total;
+    $("#g-prog-barra").style.width = (total ? listos / total * 100 : 0) + "%";
+    var tocados = GASTOS_BASE.some(function (g) { var v = state.gastos[g.id]; return v && (v.no || String(v.monto || "").trim()); });
+    $("#btn-borrar-gastos").hidden = !tocados && !state.gastosExtra.length;
+    $("#btn-ejemplo-gastos").hidden = tocados;
+    pintarErrores(3);
+    updateStepper();
   }
 
   /* =========================================================
@@ -1764,6 +2173,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     c.objetivo = planObjetivo(c);
     c.emergencia = planEmergencia(c);
     c.infl = planInflacion(c);
+    c.flujo = flujoAnual(c);
     c.recos = recomendaciones(c);
     return c;
   }
@@ -1776,11 +2186,13 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     c.rubros.forEach(function (r) {
       var pr = g.porRubro[r.id];
       var real = pr.mes + (g.grandes > 0 ? prov * pr.grandes / g.grandes : 0);
-      if (r.mes < 0.5 && real < 0.5) return;
-      filas.push({ id: r.id, nombre: r.nombre, plan: r.mes, real: real, dif: r.mes - real });
+      if (r.mes < 0.5 && real < 0.5 && rango(r.id).min == null) return;
+      filas.push({ id: r.id, nombre: r.nombre, plan: r.mes, real: real, dif: r.mes - real, pctReal: c.base > 0 ? real / c.base * 100 : 0,
+        rango: textoRango(rango(r.id)), v: veredicto(r.id, real, c.base), aj: ajusteSugerido(r.id, real, c.base) });
     });
     var totPlan = filas.reduce(function (a, x) { return a + x.plan; }, 0), totReal = filas.reduce(function (a, x) { return a + x.real; }, 0);
-    return { filas: filas, totPlan: totPlan, totReal: totReal, prov: prov, queda: c.base - g.mes - prov };
+    var sug = c.base > 0 ? planSugerido(gastosRealesMes()) : null;
+    return { filas: filas, totPlan: totPlan, totReal: totReal, prov: prov, queda: c.base - g.mes - prov, quedaSugerida: sug ? sug.queda : 0 };
   }
 
   function planObjetivo(c) {
@@ -1816,7 +2228,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (p.estado === "sin-meta") return { e: "ojo", txt: (deu ? "Escriba en el paso 2 cuánto debe en total" : "Escriba en el paso 2 cuánto necesita") + " para calcular en cuánto tiempo lo logra." };
     if (p.estado === "logrado") return { e: "ok", txt: "¡Ya tiene lo necesario para su objetivo!" };
     if (p.estado === "a-tiempo") return { e: "ok", txt: "Va bien. Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", hacia " + fechaEn(p.meses) + ", dentro del plazo que eligió." };
-    if (p.meses === null) return { e: "ojo", txt: "Su plan todavía no aparta dinero para este objetivo. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.necesita) + " al mes. Súbale a los rubros marcados como «Su objetivo» en los pasos 4 y 5." };
+    if (p.meses === null) return { e: "ojo", txt: "Su plan todavía no aparta dinero para este objetivo. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.necesita) + " al mes. Súbale a los rubros marcados como «Su objetivo» en los pasos 5 y 6." };
     return { e: "ojo", txt: "Con este plan " + verbo + " en " + fmtMeses(p.meses) + ", más tiempo del que quería. Para lograrlo en " + fmtMeses(p.plazo) + " necesita " + (deu ? "abonar " : "apartar ") + money(p.faltaMes) + " más al mes." };
   }
   function planEmergencia(c) {
@@ -1846,6 +2258,225 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     return { tasa: c.inf, filas: filas, consejos: consejos };
   }
 
+  /* =========================================================
+     Flujo del año: los próximos 12 meses, mes por mes
+     ========================================================= */
+  function flujoAnual(c) {
+    var hoy = new Date(), meses = [], sinMes = [];
+    for (var i = 0; i < 12; i++) {
+      var d = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+      meses.push({ i: i, cm: d.getMonth(), anio: d.getFullYear(), nombre: capital(MESES[d.getMonth()]) + " " + d.getFullYear(), ing: 0, gas: 0, eventos: [] });
+    }
+    function todos(lado, v) { meses.forEach(function (m) { m[lado] += v; }); }
+    function evento(lado, nombre, monto, frec, mes, anual, grande) {
+      if (mes === "" || mes == null) {
+        if (frec === "unica") { meses[0][lado] += monto; meses[0].eventos.push({ lado: lado, nombre: nombre, monto: monto, grande: grande }); }
+        else { todos(lado, anual / 12); sinMes.push(nombre); }
+        return;
+      }
+      var hecho = false;
+      meses.forEach(function (m) {
+        if (frec === "unica" && hecho) return;
+        if (ocurre(frec, mes, m.cm)) { m[lado] += monto; m.eventos.push({ lado: lado, nombre: nombre, monto: monto, grande: grande }); hecho = true; }
+      });
+    }
+    state.fuentes.forEach(function (f) {
+      var n = montoDe(f);
+      if (n <= 0) return;
+      if (esRegular(f)) todos("ing", anualDe(f) / 12);
+      else evento("ing", nombreFuente(f), n, f.frecuencia, f.mes, anualDe(f), false);
+    });
+    var modo = c.gastos.hay ? "hoja" : "presupuesto";
+    if (modo === "hoja") {
+      c.gastos.items.forEach(function (x) {
+        if (!necesitaMes(x.frec)) todos("gas", x.mes);
+        else evento("gas", x.label, x.monto, x.frec, x.mesPago, x.anio, esGrande(x.frec));
+      });
+    } else {
+      todos("gas", c.rubros.filter(function (r) { return r.id !== "ahorro" && r.id !== "meta"; }).reduce(function (a, r) { return a + r.mes; }, 0));
+    }
+    var inicial = parseMonto(state.saldoInicial), acum = inicial;
+    meses.forEach(function (m) { m.saldo = m.ing - m.gas; acum += m.saldo; m.acum = acum; });
+    function mediana(arr) { var s = arr.slice().sort(function (a, b) { return a - b; }), k = s.length; return k % 2 ? s[(k - 1) / 2] : (s[k / 2 - 1] + s[k / 2]) / 2; }
+    var ingT = mediana(meses.map(function (m) { return m.ing; }));
+    var gasT = mediana(meses.map(function (m) { return m.gas; }));
+    var salT = mediana(meses.map(function (m) { return m.saldo; }));
+    meses.forEach(function (m) {
+      var masGasto = m.gas - gasT > Math.max(300, 0.1 * gasT), masIng = m.ing - ingT > Math.max(300, 0.1 * ingT);
+      if (m.acum < -0.5) m.estado = "falta";
+      else if (m.saldo < -0.5 || (masGasto && m.saldo < salT)) m.estado = "pesado";
+      else if (masIng && m.saldo > salT) m.estado = "holgado";
+      else m.estado = "normal";
+    });
+    var minM = meses.reduce(function (a, m) { return m.acum < a.acum ? m : a; }, meses[0]);
+    var pesados = meses.filter(function (m) { return m.estado === "pesado" || m.estado === "falta"; });
+    var holgados = meses.filter(function (m) { return m.estado === "holgado"; });
+    var pagos = [], ultimo = {};
+    meses.forEach(function (m) {
+      m.eventos.forEach(function (e) {
+        if (e.lado !== "gas" || !e.grande) return;
+        var n = ultimo[e.nombre] != null ? m.i - ultimo[e.nombre] - 1 : m.i;
+        ultimo[e.nombre] = m.i;
+        pagos.push({ nombre: e.nombre, monto: e.monto, mes: m, meses: n, aparte: n >= 1 ? e.monto / n : e.monto });
+      });
+    });
+    var totIng = meses.reduce(function (a, m) { return a + m.ing; }, 0), totGas = meses.reduce(function (a, m) { return a + m.gas; }, 0);
+    var totPagos = pagos.reduce(function (a, p) { return a + p.monto; }, 0);
+    function minus(m) { return m.nombre.toLowerCase(); }
+
+    var msgs = [], recos = [];
+    var faltaMax = Math.max(0, -minM.acum);
+    if (faltaMax > 0.5) {
+      var ap = faltaMax / (minM.i + 1);
+      var t1 = "En " + minus(minM) + " su dinero no alcanzaría: le faltarían " + money(faltaMax) + ". Para evitarlo, aparte " + money(ap) + " al mes desde ahora o baje algún gasto antes de esa fecha.";
+      msgs.push({ e: "ojo", txt: t1 }); recos.push(t1);
+    } else {
+      var t2 = "Si guarda lo que le sobra en los meses tranquilos, su dinero alcanza todo el año. Lo más bajo que llega es " + money(minM.acum) + ", en " + minus(minM) + ".";
+      msgs.push({ e: "ok", txt: t2 }); recos.push(t2);
+    }
+    if (pesados.length) {
+      var razones = pesados.map(function (m) {
+        var gs = m.eventos.filter(function (e) { return e.lado === "gas"; }).sort(function (a, b) { return b.monto - a.monto; });
+        return capital(MESES[m.cm]) + (gs.length ? " (" + gs.slice(0, 2).map(function (e) { return e.nombre + " " + money(e.monto); }).join(", ") + ")" : "");
+      });
+      var t3 = "Meses pesados: " + lista(razones) + ". Esos meses sale más dinero de lo normal.";
+      msgs.push({ e: "ojo", txt: t3 }); recos.push(t3);
+    }
+    if (holgados.length) {
+      var t4 = "Meses holgados: " + lista(holgados.map(function (m) {
+        var is = m.eventos.filter(function (e) { return e.lado === "ing"; });
+        return capital(MESES[m.cm]) + (is.length ? " (llega " + lista(is.map(function (e) { return e.nombre; })) + ")" : "");
+      })) + ". No gaste ese dinero de más: guárdelo para los meses pesados.";
+      msgs.push({ e: "ok", txt: t4 }); recos.push(t4);
+    }
+    if (pagos.length) recos.push("Sus pagos grandes de los próximos 12 meses suman " + money(totPagos) + ", unos " + money(totPagos / 12) + " al mes en promedio. Lo más fácil es apartar esa cantidad cada mes en una cuenta o sobre aparte.");
+    pagos.filter(function (p) { return p.mes.i >= 1; }).slice(0, 3).forEach(function (p) {
+      recos.push(p.nombre + ": vence en " + minus(p.mes) + ". Aparte " + money(p.aparte) + " al mes durante " + (p.meses === 1 ? "1 mes" : p.meses + " meses") + ".");
+    });
+    if (modo === "presupuesto") msgs.push({ e: "info", txt: "No llenó su hoja de gastos, así que el gasto de cada mes es el de su presupuesto y no aparecen sus pagos grandes. Llene la hoja (paso 3) y elija el mes de cada pago para ver sus meses pesados." });
+    if (sinMes.length) msgs.push({ e: "info", txt: "Estos pagos no tienen mes y los repartimos parejo en el año: " + lista(sinMes) + ". Elija el mes de cada uno para verlo donde cae." });
+    return { meses: meses, modo: modo, inicial: inicial, minM: minM, pesados: pesados, holgados: holgados, pagos: pagos, totIng: totIng, totGas: totGas, totPagos: totPagos, msgs: msgs, recos: recos, sinMes: sinMes };
+  }
+
+  function escalaFlujo(fl) {
+    var vals = [0];
+    fl.meses.forEach(function (m) { vals.push(m.ing, m.gas, m.acum); });
+    var max = Math.max.apply(null, vals), min = Math.min.apply(null, vals);
+    if (max - min < 1) max = min + 1;
+    var raw = (max - min) / 4, p10 = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / p10;
+    var paso = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p10;
+    return { paso: paso, top: Math.ceil(max / paso) * paso, bot: Math.floor(min / paso) * paso };
+  }
+  function cortoMoney(v) {
+    if (Math.abs(v) < 0.5) return "$0";
+    if (Math.abs(v) >= 1000) return (v < 0 ? "−" : "") + "$" + (Math.abs(v) / 1000).toLocaleString("es-MX", { maximumFractionDigits: 1 }) + " mil";
+    return money(v);
+  }
+  function graficaSvg(fl) {
+    var W = 680, H = 280, mL = 70, mR = 10, mT = 12, mB = 44;
+    var e = escalaFlujo(fl);
+    function yv(v) { return mT + (e.top - v) / (e.top - e.bot) * (H - mT - mB); }
+    var cw = (W - mL - mR) / 12, bw = Math.min(14, cw * 0.3), y0 = yv(0), out = [];
+    var aria = "Gráfica de lo que entra y sale cada mes, de " + fl.meses[0].nombre.toLowerCase() + " a " + fl.meses[11].nombre.toLowerCase();
+    out.push('<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(aria) + '">');
+    fl.meses.forEach(function (m, i) {
+      if (m.estado === "pesado" || m.estado === "falta") out.push('<rect class="banda" x="' + (mL + i * cw) + '" y="' + mT + '" width="' + cw + '" height="' + (H - mT - mB) + '"/>');
+    });
+    for (var v = e.bot; v <= e.top + e.paso / 2; v += e.paso) {
+      var yy = yv(v);
+      out.push('<line class="' + (Math.abs(v) < 0.5 ? "cero" : "rejilla") + '" x1="' + mL + '" x2="' + (W - mR) + '" y1="' + yy + '" y2="' + yy + '"/>');
+      out.push('<text x="' + (mL - 8) + '" y="' + (yy + 4) + '" text-anchor="end">' + esc(cortoMoney(v)) + "</text>");
+    }
+    fl.meses.forEach(function (m, i) {
+      var cx = mL + i * cw + cw / 2, yi = yv(m.ing), yg = yv(m.gas);
+      out.push('<rect class="b-ing" x="' + (cx - bw - 1.5) + '" y="' + yi + '" width="' + bw + '" height="' + Math.max(0, y0 - yi) + '" rx="2"><title>Entra ' + esc(money(m.ing)) + "</title></rect>");
+      out.push('<rect class="b-gas" x="' + (cx + 1.5) + '" y="' + yg + '" width="' + bw + '" height="' + Math.max(0, y0 - yg) + '" rx="2"><title>Sale ' + esc(money(m.gas)) + "</title></rect>");
+      out.push('<text x="' + cx + '" y="' + (H - mB + 18) + '" text-anchor="middle">' + MESES_CORTOS[m.cm] + "</text>");
+      if (i === 0 || m.cm === 0) out.push('<text class="anio" x="' + cx + '" y="' + (H - mB + 34) + '" text-anchor="middle">' + m.anio + "</text>");
+    });
+    out.push('<polyline class="l-acum" points="' + fl.meses.map(function (m, i) { return (mL + i * cw + cw / 2) + "," + yv(m.acum); }).join(" ") + '"/>');
+    fl.meses.forEach(function (m, i) {
+      out.push('<circle class="p-acum' + (m.acum < 0 ? " neg" : "") + '" cx="' + (mL + i * cw + cw / 2) + '" cy="' + yv(m.acum) + '" r="4"><title>Acumulado ' + esc(money(m.acum)) + "</title></circle>");
+    });
+    out.push("</svg>");
+    return out.join("");
+  }
+  var ESTADO_TXT = { pesado: "Mes pesado", falta: "No alcanza", holgado: "Mes holgado" };
+  function renderFlujo(root, fl) {
+    root.textContent = "";
+    var msgs = document.createElement("div");
+    msgs.className = "flujo-msgs";
+    fl.msgs.forEach(function (m) { msgs.appendChild(estadoEl(m)); });
+    root.appendChild(msgs);
+    var ley = document.createElement("div");
+    ley.className = "leyenda-flujo";
+    ley.innerHTML = '<span><i class="ing"></i>Entra</span><span><i class="gas"></i>Sale</span><span><i class="acum"></i>Dinero acumulado</span><span><i class="banda"></i>Mes pesado</span>';
+    root.appendChild(ley);
+    var g = document.createElement("div");
+    g.className = "grafica";
+    g.innerHTML = graficaSvg(fl);
+    root.appendChild(g);
+    var ol = document.createElement("ol");
+    ol.className = "flujo-meses";
+    fl.meses.forEach(function (m) {
+      var li = document.createElement("li");
+      li.className = "fm";
+      li.setAttribute("data-e", m.estado);
+      var head = document.createElement("div"); head.className = "fm-head";
+      var nm = document.createElement("strong"); nm.textContent = m.nombre; head.appendChild(nm);
+      if (ESTADO_TXT[m.estado]) { var ch = document.createElement("span"); ch.className = "chip"; ch.setAttribute("data-e", m.estado); ch.textContent = ESTADO_TXT[m.estado]; head.appendChild(ch); }
+      li.appendChild(head);
+      var dl = document.createElement("dl"); dl.className = "fm-nums";
+      [["Entra", money(m.ing), ""], ["Sale", money(m.gas), ""], [m.saldo >= 0 ? "Le sobra" : "Le falta", money(Math.abs(m.saldo)), m.saldo >= 0 ? "mas" : "menos"], ["Acumulado", money(m.acum), m.acum < 0 ? "menos" : ""]].forEach(function (p) {
+        var dv = document.createElement("div"), dt = document.createElement("dt"), dd = document.createElement("dd");
+        dt.textContent = p[0]; dd.textContent = p[1]; if (p[2]) dd.className = p[2];
+        dv.appendChild(dt); dv.appendChild(dd); dl.appendChild(dv);
+      });
+      li.appendChild(dl);
+      if (m.eventos.length) {
+        var ul = document.createElement("ul"); ul.className = "fm-ev";
+        m.eventos.forEach(function (e) {
+          var it = document.createElement("li"); it.className = e.lado === "ing" ? "ing" : "gas";
+          var a = document.createElement("span"); a.textContent = e.nombre;
+          var b = document.createElement("span"); b.textContent = (e.lado === "ing" ? "+" : "−") + money(e.monto);
+          it.appendChild(a); it.appendChild(b); ul.appendChild(it);
+        });
+        li.appendChild(ul);
+      }
+      ol.appendChild(li);
+    });
+    root.appendChild(ol);
+    var tot = document.createElement("p");
+    tot.className = "ayuda";
+    tot.textContent = "En los 12 meses entran " + money(fl.totIng) + " y salen " + money(fl.totGas) + (fl.inicial > 0 ? ", y empieza con " + money(fl.inicial) : "") + ".";
+    root.appendChild(tot);
+    if (fl.pagos.length) {
+      var h = document.createElement("h4"); h.textContent = "Pagos grandes que vienen y cuánto apartar";
+      root.appendChild(h);
+      var wrap = document.createElement("div"); wrap.className = "tabla-wrap";
+      var tb = document.createElement("table"); tb.className = "comp";
+      tb.innerHTML = '<thead><tr><th scope="col">Pago</th><th scope="col">Cuándo</th><th scope="col" class="num">Monto</th><th scope="col" class="num">Aparte al mes</th></tr></thead>';
+      var body = document.createElement("tbody");
+      fl.pagos.forEach(function (p) {
+        var tr = document.createElement("tr");
+        celda(tr, p.nombre);
+        celda(tr, p.mes.nombre + (p.mes.i === 0 ? " (este mes)" : " (en " + (p.mes.i === 1 ? "1 mes" : p.mes.i + " meses") + ")"));
+        celda(tr, money(p.monto), "num");
+        celda(tr, p.mes.i === 0 ? "Se paga este mes" : money(p.aparte), "num");
+        body.appendChild(tr);
+      });
+      tb.appendChild(body); wrap.appendChild(tb); root.appendChild(wrap);
+      var nota = document.createElement("p");
+      nota.className = "ayuda";
+      nota.textContent = "Aparte al mes = el monto del pago entre los meses que faltan para pagarlo. En promedio, sus pagos grandes equivalen a " + money(fl.totPagos / 12) + " al mes.";
+      root.appendChild(nota);
+    }
+  }
+  function renderFlujoPaso() {
+    var c = calcular();
+    renderFlujo($("#flujo-paso"), c.flujo);
+  }
+
   function paresObjetivo(p) {
     var r = [];
     if (p.tipo === "deudas") {
@@ -1872,12 +2503,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     return [["Gastos indispensables al mes", money(e.basicos)], ["Meta mínima (3 meses)", money(e.meta3)], ["Meta ideal (6 meses)", money(e.meta6)],
       ["Ya tiene", money(e.tiene)], ["Aparta en promedio al mes", money(e.aporte)], ["Tiempo para la meta mínima", e.falta3 <= 0 ? "Ya la alcanzó" : e.meses ? fmtMeses(e.meses) : "Sin fecha"]];
   }
+  function mensajeQueda(c) {
+    var k = c.comp, pq = c.base > 0 ? k.queda / c.base * 100 : 0;
+    if (k.queda < -0.5) return { e: "ojo", txt: "Hoy gasta " + money(-k.queda) + " al mes más de lo que recibe cada mes. Necesita bajar gastos: vea abajo dónde conviene recortar." };
+    if (pq < 10) return { e: "ojo", txt: "Después de sus gastos de hoy le quedan " + money(k.queda) + " al mes (" + fmtPct(pq) + "). Es poco: lo recomendado es ahorrar al menos 10% de su ingreso (" + money(c.base * 0.1) + ")." };
+    return { e: "ok", txt: "Después de sus gastos de hoy le quedan " + money(k.queda) + " al mes (" + fmtPct(pq) + ") para ahorro y su objetivo. Va bien." };
+  }
   function paresGastos(c) {
     var g = c.gastos, k = c.comp;
     var r = [["Gastos de cada mes", money(g.mes)], ["Pagos grandes del año", money(g.grandes) + (g.grandes > 0 ? " (" + money(g.grandes / 12) + " al mes)" : "")]];
     if (k.prov > 0.5) r.push(["Debe apartar cada mes para pagos grandes", money(k.prov)]);
     r.push(["Su dinero de cada mes", money(c.base)]);
-    r.push([k.queda >= 0 ? "Le queda al mes después de sus gastos" : "Le falta al mes para cubrir sus gastos", money(Math.abs(k.queda))]);
+    if (c.base > 0) r.push(["Parte de su ingreso que se va en gastos", fmtPct((g.mes + k.prov) / c.base * 100)]);
+    r.push([k.queda >= 0 ? "Le queda al mes después de sus gastos" : "Le falta al mes para cubrir sus gastos", money(Math.abs(k.queda)) + (c.base > 0 ? " (" + fmtPct(Math.abs(k.queda) / c.base * 100) + ")" : "")]);
+    if (k.quedaSugerida - k.queda > 0.5) r.push(["Le quedaría con nuestras sugerencias", money(Math.max(0, k.quedaSugerida))]);
     return r;
   }
 
@@ -1895,18 +2534,28 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     else if (variables.length) g1.push("Su ingreso seguro (" + money(c.seguro) + " al mes) alcanza para lo indispensable. Lo que recibe de " + lista(variables.map(function (x) { return x.nombre; })) + " puede variar, así que úselo de preferencia para ahorro y gustos.");
     var comida = rub("comida");
     if (comida.mes > 0) g1.push("Para comida y despensa tiene " + money(comida.mes * 12 / 52) + " por semana. Llevar ese dinero aparte ayuda a no pasarse.");
-    if (rub("salud").pct < 10) g1.push("Su gasto en salud es menor a 10%. Con la edad los gastos médicos suelen subir; si le es posible, aparte 10% o más.");
-    if (rub("vivienda").pct > 35) g1.push("La vivienda se lleva más de 35% de su ingreso y deja poco margen para lo demás.");
-    if (rub("deudas").pct > 20) g1.push("Más de 20% de su ingreso se va en deudas. Conviene liquidar primero la que cobra más intereses.");
+    if (!c.comp && rub("salud").pct < 10) g1.push("Su gasto en salud es menor a 10%. Con la edad los gastos médicos suelen subir; si le es posible, aparte 10% o más.");
+    if (!c.comp && rub("vivienda").pct > 35) g1.push("La vivienda se lleva más de 35% de su ingreso y deja poco margen para lo demás.");
+    if (!c.comp && rub("deudas").pct > 20) g1.push("Más de 20% de su ingreso se va en deudas. Conviene liquidar primero la que cobra más intereses.");
     g1.push("Cuando reciba su pensión o su ingreso del mes, pague primero lo fijo (renta, luz, agua, deudas) y aparte su ahorro. Lo que queda es para el resto del mes.");
     grupos.push({ titulo: "Su dinero de cada mes", items: g1 });
+    if (c.flujo && c.flujo.recos.length) grupos.push({ titulo: "Su flujo del año", items: c.flujo.recos });
 
     if (c.comp) {
-      var gg = [], k = c.comp;
-      if (k.queda < 0) gg.push("Hoy gasta " + money(-k.queda) + " al mes más de lo que recibe cada mes. Revise los rubros donde gasta más de lo planeado.");
-      k.filas.filter(function (x) { return x.dif < -50; }).sort(function (a, b) { return a.dif - b.dif; }).slice(0, 3).forEach(function (x) {
-        gg.push(x.nombre + ": hoy gasta " + money(x.real) + " al mes y su plan dice " + money(x.plan) + ". Intente bajar " + money(-x.dif) + " al mes.");
+      var gg = [], k = c.comp, pq = c.base > 0 ? k.queda / c.base * 100 : 0;
+      if (k.queda < -0.5) gg.push("Hoy gasta " + money(-k.queda) + " al mes más de lo que recibe cada mes. Necesita bajar gastos para no endeudarse.");
+      else if (pq < 10) gg.push("Después de sus gastos le quedan " + money(k.queda) + " al mes (" + fmtPct(pq) + " de su ingreso). Lo recomendado es ahorrar al menos 10% (" + money(c.base * 0.1) + ").");
+      else gg.push("Después de sus gastos le quedan " + money(k.queda) + " al mes (" + fmtPct(pq) + " de su ingreso) para ahorro y su objetivo. Va bien.");
+      k.filas.filter(function (x) { return x.v && (x.v.e === "alto" || x.v.e === "muy-alto"); })
+        .sort(function (a, b) { return (b.pctReal - b.v.rg.max) - (a.pctReal - a.v.rg.max); })
+        .forEach(function (x) {
+          if (x.id === "deudas") gg.push("Deudas: se lleva " + fmtPct(x.pctReal) + " de su ingreso; lo recomendado es " + x.rango + ". Concéntrese en liquidar primero la que cobra más interés.");
+          else gg.push(x.nombre + ": gasta " + fmtPct(x.pctReal) + " de su ingreso (" + money(x.real) + " al mes); lo recomendado es " + x.rango + ". Para empezar, baje unos " + money(-x.aj) + " al mes.");
+        });
+      k.filas.filter(function (x) { return x.v && x.v.e === "bajo"; }).forEach(function (x) {
+        gg.push(x.nombre + ": gasta " + fmtPct(x.pctReal) + " de su ingreso; lo recomendado es " + x.rango + ". Si su dinero lo permite, súbale " + money(x.aj) + " al mes.");
       });
+      if (k.quedaSugerida - k.queda > 0.5) gg.push("Con estos ajustes le quedarían " + money(Math.max(0, k.quedaSugerida)) + " al mes para ahorro, " + money(k.quedaSugerida - k.queda) + " más que hoy.");
       var luz = state.gastos.luz;
       if (luz && parseMonto(luz.monto) > 0 && luz.frec === "bimestral") gg.push("El recibo de luz llega cada dos meses: aparte " + money(parseMonto(luz.monto) / 2) + " cada mes para pagarlo sin apuros.");
       if (c.cobertura) gg.push(c.cobertura.txt);
@@ -1998,6 +2647,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     $("#res-mes").textContent = money(c.base);
     $("#res-extra").textContent = money(c.extra);
     $("#res-anio").textContent = money(c.base * 12 + c.extra);
+    $("#rs-flujo-sub").textContent = "Cuánto entra y cuánto sale en cada uno de los próximos 12 meses" + (c.flujo.inicial > 0 ? ", empezando con " + money(c.flujo.inicial) + " disponibles" : "") + ".";
+    renderFlujo($("#flujo-res"), c.flujo);
 
     $("#rs-mes-sub").textContent = "Con su dinero para el día a día de " + money(c.base) + " al mes.";
     pintarStack($("#res-stack"), c.rubros, c.estMes === "listo" ? 100 : c.sumMes);
@@ -2026,20 +2677,20 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     if (c.comp) {
       var rgx = $("#res-gastos"); rgx.textContent = "";
       rgx.appendChild(kvList(paresGastos(c)));
-      rgx.appendChild(estadoEl(c.comp.queda >= 0
-        ? { e: "ok", txt: "Después de sus gastos de hoy le quedan " + money(c.comp.queda) + " al mes para ahorro y su objetivo." }
-        : { e: "ojo", txt: "Hoy gasta " + money(-c.comp.queda) + " al mes más de lo que recibe cada mes. Vea abajo en qué rubros conviene recortar." }));
+      rgx.appendChild(estadoEl(mensajeQueda(c)));
       if (c.cobertura) rgx.appendChild(estadoEl(c.cobertura));
       var tb = $("#comp-body"); tb.textContent = "";
       c.comp.filas.forEach(function (x) {
         var tr = document.createElement("tr");
-        celda(tr, x.nombre); celda(tr, money(x.plan), "num"); celda(tr, money(x.real), "num");
-        celda(tr, moneySigno(x.dif), "num " + (x.dif >= 0 ? "mas" : "menos"));
+        var td = celda(tr, x.nombre);
+        if (x.v) { var ch = document.createElement("span"); ch.className = "chip-v"; ch.setAttribute("data-e", x.v.e); ch.textContent = x.v.txt; td.appendChild(document.createTextNode(" ")); td.appendChild(ch); }
+        celda(tr, money(x.real), "num"); celda(tr, fmtPct(x.pctReal), "num"); celda(tr, x.rango || "—");
+        celda(tr, money(x.plan), "num"); celda(tr, moneySigno(x.dif), "num");
         tb.appendChild(tr);
       });
       var tt = document.createElement("tr"); tt.className = "total";
-      celda(tt, "Total"); celda(tt, money(c.comp.totPlan), "num"); celda(tt, money(c.comp.totReal), "num");
-      celda(tt, moneySigno(c.comp.totPlan - c.comp.totReal), "num " + (c.comp.totPlan - c.comp.totReal >= 0 ? "mas" : "menos"));
+      celda(tt, "Total"); celda(tt, money(c.comp.totReal), "num"); celda(tt, c.base > 0 ? fmtPct(c.comp.totReal / c.base * 100) : "", "num"); celda(tt, "");
+      celda(tt, money(c.comp.totPlan), "num"); celda(tt, moneySigno(c.comp.totPlan - c.comp.totReal), "num");
       tb.appendChild(tt);
     }
 
@@ -2129,40 +2780,118 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   $("#inflacion").addEventListener("focusout", function (e) { e.target.value = numPct(inflacion()); });
 
   /* =========================================================
+     Validación: no se avanza sin completar cada paso
+     ========================================================= */
+  var mostrar = { 1: false, 2: false, 3: false };
+  function erroresPaso1() {
+    var errs = [];
+    state.fuentes.forEach(function (f, i) {
+      var falta = [];
+      if (!f.tipo) falta.push("el tipo de ingreso");
+      if (montoDe(f) <= 0) falta.push("cuánto recibe");
+      if (necesitaMes(f.frecuencia) && f.mes === "") falta.push("en qué mes llega");
+      if (falta.length) errs.push({ id: f.id, txt: "Ingreso " + (i + 1) + ": falta " + lista(falta) + "." });
+    });
+    return errs;
+  }
+  function erroresPaso2() {
+    var o = objetivo(), t = tipoObj(), errs = [];
+    if (!o) return [{ txt: "Elija su objetivo principal." }];
+    if (o.id === "otro" && !state.objOtro.trim()) errs.push({ txt: "Escriba cuál es su objetivo." });
+    if (t === "meta" && !parseMonto(state.meta)) errs.push({ txt: "Escriba cuánto dinero necesita para su objetivo." });
+    if (t === "deudas" && !parseMonto(state.deudaTotal)) errs.push({ txt: "Escriba cuánto debe en total." });
+    return errs;
+  }
+  function erroresPaso3() {
+    var faltan = [];
+    GASTOS_BASE.forEach(function (g) {
+      var v = state.gastos[g.id] || {};
+      if (v.no) return;
+      var n = parseMonto(v.monto), frec = v.frec || g.frec, cero = String(v.monto || "").trim() === "0";
+      if (n <= 0 && !cero) faltan.push({ key: g.id });
+      else if (n > 0 && necesitaMes(frec) && mesGastoBase(g, v) === "") faltan.push({ key: g.id });
+    });
+    state.gastosExtra.forEach(function (x) {
+      if (!x.label.trim() || parseMonto(x.monto) <= 0) faltan.push({ key: "x" + x.id });
+      else if (necesitaMes(x.frec) && !x.mes) faltan.push({ key: "x" + x.id });
+    });
+    return faltan;
+  }
+  function errores(n) { return n === 1 ? erroresPaso1() : n === 2 ? erroresPaso2() : n === 3 ? erroresPaso3() : []; }
+  function primerIncompleto() { for (var n = 1; n <= 3; n++) if (errores(n).length) return n; return 99; }
+  function limitePaso() { return Math.min(primerIncompleto(), state.alcanzado || 1); }
+  function pintarErrores(n) {
+    if (!mostrar || n > 3) return;
+    var errs = errores(n), el;
+    if (n === 1) {
+      el = $("#err-ingreso");
+      $$("#fuentes .fuente").forEach(function (card) { card.classList.toggle("falta", mostrar[1] && errs.some(function (e) { return String(e.id) === card.getAttribute("data-id"); })); });
+    } else if (n === 2) {
+      el = $("#err-obj");
+    } else {
+      el = $("#err-gastos");
+      $$("#gastos .gasto").forEach(function (row) { row.classList.toggle("falta", mostrar[3] && errs.some(function (e) { return e.key === row.getAttribute("data-row"); })); });
+    }
+    if (!el) return;
+    if (!mostrar[n] || !errs.length) { el.hidden = true; return; }
+    el.hidden = false;
+    if (n === 3) el.textContent = "Le " + (errs.length === 1 ? "falta 1 gasto" : "faltan " + errs.length + " gastos") + " por contestar. Escriba cuánto paga o marque «No lo pago». Lo que no paga cada mes necesita su mes. Están marcados en rojo.";
+    else el.textContent = errs.map(function (e) { return e.txt; }).join(" ");
+  }
+  function siguiente(desde, hacia) {
+    if (errores(desde).length) {
+      mostrar[desde] = true;
+      pintarErrores(desde);
+      var primero = desde === 1 ? $("#fuentes .fuente.falta") : desde === 3 ? $("#gastos .gasto.falta") : $("#err-obj");
+      if (primero) {
+        primero.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+        var inp = primero.querySelector ? primero.querySelector("input:not([disabled]):not([type=checkbox]), select:not([disabled])") : null;
+        if (inp) { try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } }
+      }
+      return;
+    }
+    if (desde <= 3) { mostrar[desde] = false; pintarErrores(desde); }
+    state.alcanzado = Math.max(state.alcanzado || 1, hacia);
+    goTo(hacia, true);
+  }
+
+  /* =========================================================
      Navegación
      ========================================================= */
   function updateStepper() {
-    var hay = totalAnual() > 0, hayExtra = extraAnio() > 0;
+    var lim = limitePaso(), hayExtra = extraAnio() > 0;
     $$(".paso").forEach(function (b) {
       var n = Number(b.getAttribute("data-ir"));
       if (n === state.paso) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
       b.classList.toggle("hecho", n < state.paso);
-      b.disabled = (n > 1 && !hay) || (n === 5 && !hayExtra);
+      b.disabled = n > lim || (n === 6 && !hayExtra);
     });
   }
   function goTo(n, conFoco) {
     var bloqueado = false;
-    if (n > 1 && totalAnual() <= 0) {
-      if (conFoco) { $("#err-ingreso").hidden = false; var primero = $('#fuentes [data-campo="monto"]'); if (primero) primero.focus(); }
-      n = 1; bloqueado = true;
+    var lim = limitePaso();
+    if (n > lim) {
+      n = lim;
+      if (conFoco && primerIncompleto() === n) mostrar[n] = true;
     }
-    if (n === 5 && extraAnio() <= 0) n = state.paso === 6 ? 4 : 6;
+    if (n === 6 && extraAnio() <= 0) n = state.paso === 7 ? 5 : 7;
     state.paso = n;
     $$("[data-panel]").forEach(function (p) { p.hidden = Number(p.getAttribute("data-panel")) !== n; });
     if (n === 1) updateTotales();
     if (n === 2) renderObjetivo();
     if (n === 3) renderGastos();
-    if (n === 4) {
+    if (n === 4) { $("#saldo-inicial").value = state.saldoInicial; renderFlujoPaso(); }
+    if (n === 5) {
       $("#p4-base").textContent = money(baseMes());
       $("#p4-sin-base").hidden = baseMes() > 0;
       var rg = resumenGastos();
-      if (rg.hay && (!state.pctTocado || state.pctAuto)) aplicarGastosReales();
-      $("#btn-usar-reales").hidden = !rg.hay;
-      mostrarNotaReal();
+      if (rg.hay && state.planModo !== "manual") aplicarPlan(state.planModo === "sugerido" ? "sugerido" : "real");
+      $("#btn-sugerido-mes").hidden = rg.hay;
+      renderDiagnostico();
       renderRepartoMes();
     }
-    if (n === 5) { $("#p5-base").textContent = money(extraAnio()); renderExtras(); }
-    if (n === 6) renderResultados();
+    if (n === 6) { $("#p5-base").textContent = money(extraAnio()); renderExtras(); }
+    if (n === 7) renderResultados();
     save();
     updateStepper();
     if (conFoco && !bloqueado) {
@@ -2173,17 +2902,21 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
   }
 
   $$(".paso").forEach(function (b) { b.addEventListener("click", function () { goTo(Number(b.getAttribute("data-ir")), true); }); });
-  $("#p1-sig").addEventListener("click", function () { goTo(2, true); });
+  $("#p1-sig").addEventListener("click", function () { siguiente(1, 2); });
   $("#p2-ant").addEventListener("click", function () { goTo(1, true); });
-  $("#p2-sig").addEventListener("click", function () { goTo(3, true); });
+  $("#p2-sig").addEventListener("click", function () { siguiente(2, 3); });
   $("#p3-ant").addEventListener("click", function () { goTo(2, true); });
-  $("#p3-saltar").addEventListener("click", function () { goTo(4, true); });
-  $("#p3-sig").addEventListener("click", function () { goTo(4, true); });
-  $("#p4-ant").addEventListener("click", function () { goTo(3, true); });
-  $("#p4-sig").addEventListener("click", function () { goTo(extraAnio() > 0 ? 5 : 6, true); });
-  $("#p5-ant").addEventListener("click", function () { goTo(4, true); });
-  $("#p5-sig").addEventListener("click", function () { goTo(6, true); });
-  $("#p6-ant").addEventListener("click", function () { goTo(extraAnio() > 0 ? 5 : 4, true); });
+  $("#p3-sig").addEventListener("click", function () { siguiente(3, 4); });
+  $("#pf-ant").addEventListener("click", function () { goTo(3, true); });
+  $("#pf-sig").addEventListener("click", function () { siguiente(4, 5); });
+  $("#pf-ir-ingresos").addEventListener("click", function () { goTo(1, true); });
+  $("#pf-ir-gastos").addEventListener("click", function () { goTo(3, true); });
+  $("#saldo-inicial").addEventListener("input", function (e) { state.saldoInicial = e.target.value; save(); renderFlujoPaso(); });
+  $("#p4-ant").addEventListener("click", function () { goTo(4, true); });
+  $("#p4-sig").addEventListener("click", function () { siguiente(5, extraAnio() > 0 ? 6 : 7); });
+  $("#p5-ant").addEventListener("click", function () { goTo(5, true); });
+  $("#p5-sig").addEventListener("click", function () { siguiente(6, 7); });
+  $("#p6-ant").addEventListener("click", function () { goTo(extraAnio() > 0 ? 6 : 5, true); });
 
   var armadoTimer = null;
   var btnReiniciar = $("#btn-reiniciar");
@@ -2193,6 +2926,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       btnReiniciar.removeAttribute("data-armado");
       btnReiniciar.textContent = "Empezar de nuevo";
       state = defaults();
+      mostrar = { 1: false, 2: false, 3: false };
       save();
       renderFuentes();
       goTo(1, true);
@@ -2254,14 +2988,15 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       y += 5;
     }
     function aviso(m) {
-      var bg = m.e === "ok" ? SOFTBG : WARNBG, fg = m.e === "ok" ? ACC : WARN;
-      font("bold", 11, fg);
+      var info = m.e === "info";
+      var bg = m.e === "ok" ? SOFTBG : info ? [240, 244, 242] : WARNBG, fg = m.e === "ok" ? ACC : info ? SOFT : WARN;
+      font(info ? "normal" : "bold", 11, fg);
       var ls = doc.splitTextToSize(t(m.txt), CW - 28);
       var h = ls.length * lh(11) + 18;
       ensure(h + 6);
       doc.setFillColor(bg[0], bg[1], bg[2]);
       doc.roundedRect(M, y, CW, h, 6, 6, "F");
-      font("bold", 11, fg);
+      font(info ? "normal" : "bold", 11, fg);
       doc.text(ls, M + 14, y + 20);
       y += h + 14;
     }
@@ -2340,7 +3075,8 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
     var colsI = [{ t: "Fuente", x: M, w: 180 }, { t: "Cada cuándo", x: M + 192 }, { t: "Cantidad", x: M + 362, a: "right" }, { t: "Al mes", x: M + 437, a: "right" }, { t: "Al año", x: W - M, a: "right", b: true }];
     var filasI = c.fuentes.map(function (x) {
       return { c: [x.nombre, x.q.label, money(x.monto), money(x.mes), money(x.anio)],
-        sub: (x.tipo && (x.f.detalle || "").trim() ? x.tipo.label + " · " : "") + (x.seguro ? "Llega seguro" : "Puede variar") + " · " + (x.destino === "diario" ? "Para el día a día" : "Para ahorro y metas"),
+        sub: (x.tipo && (x.f.detalle || "").trim() ? x.tipo.label + " · " : "") + (x.seguro ? "Llega seguro" : "Puede variar") + " · " + (x.destino === "diario" ? "Para el día a día" : "Para ahorro y metas") +
+          (necesitaMes(x.f.frecuencia) && x.f.mes !== "" ? " · Llega en " + textoMeses(x.f.frecuencia, x.f.mes) : ""),
         sw: x.destino === "diario" ? ACC : [204, 154, 38] };
     });
     filasI.push({ c: ["Total para el día a día", "", "", money(c.base), money(c.base * 12)], bold: true, color: ACC });
@@ -2358,7 +3094,7 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
         var its = c.gastos.items.filter(function (x) { return x.rubro === r.id; });
         if (!its.length) return;
         its.forEach(function (x) {
-          filasG.push({ c: [x.label, fGasto(x.frec).label, money(x.monto), x.grande ? "-" : money(x.mes), money(x.anio)], sw: hex(r.pdf), sub: r.nombre + (x.grande ? " · Pago grande del año" : "") });
+          filasG.push({ c: [x.label, fGasto(x.frec).label, money(x.monto), x.grande ? "-" : money(x.mes), money(x.anio)], sw: hex(r.pdf), sub: r.nombre + (x.grande ? " · Pago grande del año" : "") + (necesitaMes(x.frec) && x.mesPago !== "" ? " · " + capital(textoMeses(x.frec, x.mesPago)) : "") });
         });
       });
       filasG.push({ c: ["Gastos de cada mes", "", "", money(c.gastos.mes), money(c.gastos.mes * 12)], bold: true, color: ACC });
@@ -2366,15 +3102,98 @@ table.comp tr.total td { font-weight: 700; border-bottom: 2px solid var(--ink); 
       tabla(colsG, filasG);
       subtitulo("Resumen");
       tablaKV(paresGastos(c));
-      aviso(c.comp.queda >= 0
-        ? { e: "ok", txt: "Después de sus gastos de hoy le quedan " + money(c.comp.queda) + " al mes para ahorro y su objetivo." }
-        : { e: "ojo", txt: "Hoy gasta " + money(-c.comp.queda) + " al mes más de lo que recibe cada mes. Revise los rubros donde gasta más de lo planeado." });
+      aviso(mensajeQueda(c));
       if (c.cobertura) aviso(c.cobertura);
-      subtitulo("Comparación con su plan");
-      var colsC = [{ t: "Rubro", x: M, w: 220 }, { t: "Planeado", x: M + 300, a: "right" }, { t: "Hoy gasta", x: M + 400, a: "right" }, { t: "Diferencia", x: W - M, a: "right", b: true }];
-      var filasC = c.comp.filas.map(function (x) { return { c: [x.nombre, money(x.plan), money(x.real), signo(x.dif)], colores: { 3: x.dif >= 0 ? ACC : BAD } }; });
-      filasC.push({ c: ["Total", money(c.comp.totPlan), money(c.comp.totReal), signo(c.comp.totPlan - c.comp.totReal)], bold: true, colores: { 3: c.comp.totPlan - c.comp.totReal >= 0 ? ACC : BAD } });
+      subtitulo("Qué porcentaje de su ingreso se va en cada cosa");
+      var colsC = [{ t: "Rubro", x: M, w: 140 }, { t: "Hoy gasta", x: M + 207, a: "right" }, { t: "%", x: M + 257, a: "right", b: true }, { t: "Recomendado", x: M + 270 }, { t: "Su plan", x: M + 432, a: "right" }, { t: "Cambio", x: W - M, a: "right" }];
+      var colV = { "muy-alto": BAD, alto: WARN, bajo: WARN, bien: ACC };
+      var filasC = c.comp.filas.map(function (x) {
+        var sub = "";
+        if (x.v) {
+          sub = x.v.txt;
+          if (x.id === "deudas" && x.v.e !== "bien") sub += ": liquide primero la de más interés";
+          else if (x.aj < -0.5) sub += ": bajar unos " + money(-x.aj) + " al mes";
+          else if (x.aj > 0.5) sub += ": subir " + money(x.aj) + " al mes";
+        }
+        return { c: [x.nombre, money(x.real), fmtPct(x.pctReal), x.rango || "-", money(x.plan), signo(x.dif)], sub: sub, colores: { 2: x.v ? colV[x.v.e] : INK } };
+      });
+      filasC.push({ c: ["Total", money(c.comp.totReal), c.base > 0 ? fmtPct(c.comp.totReal / c.base * 100) : "", "", money(c.comp.totPlan), signo(c.comp.totPlan - c.comp.totReal)], bold: true });
       tabla(colsC, filasC);
+    }
+
+    /* Flujo del año */
+    var fl = c.flujo;
+    function graficaPdf() {
+      var es = escalaFlujo(fl), h = 170;
+      ensure(h + 60);
+      var gx0 = M + 52, gx1 = W - M, gy0 = y, gy1 = y + h;
+      function yv(v) { return gy0 + (es.top - v) / (es.top - es.bot) * (gy1 - gy0); }
+      var cw = (gx1 - gx0) / 12, bw = Math.min(11, cw * 0.3), y0 = yv(0);
+      fl.meses.forEach(function (m, i) {
+        if (m.estado === "pesado" || m.estado === "falta") { doc.setFillColor(253, 237, 233); doc.rect(gx0 + i * cw, gy0, cw, gy1 - gy0, "F"); }
+      });
+      for (var v = es.bot; v <= es.top + es.paso / 2; v += es.paso) {
+        var yy = yv(v), cero = Math.abs(v) < 0.5;
+        if (cero) doc.setDrawColor(147, 166, 158); else doc.setDrawColor(LINE[0], LINE[1], LINE[2]);
+        doc.setLineWidth(cero ? 1 : 0.5);
+        doc.line(gx0, yy, gx1, yy);
+        font("normal", 7.5, SOFT);
+        doc.text(t(cortoMoney(v)), gx0 - 5, yy + 2.5, { align: "right" });
+      }
+      fl.meses.forEach(function (m, i) {
+        var cx = gx0 + i * cw + cw / 2, yi = yv(m.ing), yg = yv(m.gas);
+        doc.setFillColor(ACC[0], ACC[1], ACC[2]); doc.rect(cx - bw - 1, yi, bw, Math.max(0, y0 - yi), "F");
+        doc.setFillColor(217, 119, 74); doc.rect(cx + 1, yg, bw, Math.max(0, y0 - yg), "F");
+        font("normal", 8, SOFT); doc.text(MESES_CORTOS[m.cm], cx, gy1 + 11, { align: "center" });
+        if (i === 0 || m.cm === 0) { font("bold", 8, INK); doc.text(String(m.anio), cx, gy1 + 21, { align: "center" }); }
+      });
+      doc.setDrawColor(INK[0], INK[1], INK[2]); doc.setLineWidth(1.4);
+      var px = null, py = null;
+      fl.meses.forEach(function (m, i) {
+        var cx = gx0 + i * cw + cw / 2, cy = yv(m.acum);
+        if (px !== null) doc.line(px, py, cx, cy);
+        px = cx; py = cy;
+      });
+      fl.meses.forEach(function (m, i) {
+        var cx = gx0 + i * cw + cw / 2, cy = yv(m.acum), cl = m.acum < 0 ? BAD : INK;
+        doc.setFillColor(cl[0], cl[1], cl[2]); doc.circle(cx, cy, 2.2, "F");
+      });
+      y = gy1 + 38;
+      var lx = M;
+      [[ACC, "Entra"], [[217, 119, 74], "Sale"], [INK, "Dinero acumulado"], [[253, 237, 233], "Mes pesado"]].forEach(function (it) {
+        doc.setFillColor(it[0][0], it[0][1], it[0][2]);
+        if (it[1] === "Dinero acumulado") doc.rect(lx, y - 4, 14, 2.5, "F"); else doc.rect(lx, y - 7.5, 9, 9, "F");
+        font("normal", 9.5, SOFT); doc.text(t(it[1]), lx + (it[1] === "Dinero acumulado" ? 19 : 14), y);
+        lx += doc.getTextWidth(t(it[1])) + 40;
+      });
+      y += 22;
+    }
+    seccion("Mi dinero mes por mes", "Cuánto entra y cuánto sale en cada uno de los próximos 12 meses" + (fl.inicial > 0 ? ", empezando con " + money(fl.inicial) + " disponibles" : "") + ". " +
+      (fl.modo === "hoja" ? "Los gastos salen de su hoja de gastos, con cada pago en el mes en que cae." : "Los gastos son los de su presupuesto de cada mes, porque no llenó la hoja de gastos."), 330);
+    graficaPdf();
+    fl.msgs.forEach(aviso);
+    tabla([{ t: "Mes", x: M, w: 205 }, { t: "Entra", x: M + 285, a: "right" }, { t: "Sale", x: M + 358, a: "right" }, { t: "Le sobra", x: M + 434, a: "right", b: true }, { t: "Acumulado", x: W - M, a: "right" }],
+      fl.meses.map(function (m) {
+        var en = m.eventos.filter(function (e) { return e.lado === "ing"; }).map(function (e) { return e.nombre + " " + money(e.monto); });
+        var sa = m.eventos.filter(function (e) { return e.lado === "gas"; }).map(function (e) { return e.nombre + " " + money(e.monto); });
+        var partes = [ESTADO_TXT[m.estado] || ""];
+        if (en.length) partes.push("Entra: " + en.join(", "));
+        if (sa.length) partes.push("Sale: " + sa.join(", "));
+        return {
+          c: [m.nombre, money(m.ing), money(m.gas), signo(m.saldo), money(m.acum)],
+          sub: partes.filter(Boolean).join(" · "),
+          sw: m.estado === "pesado" ? [229, 167, 61] : m.estado === "falta" ? BAD : m.estado === "holgado" ? ACC : null,
+          colores: { 3: m.saldo < 0 ? BAD : ACC, 4: m.acum < 0 ? BAD : INK }
+        };
+      }));
+    parrafo("En los 12 meses entran " + money(fl.totIng) + " y salen " + money(fl.totGas) + ".", 10.5, SOFT);
+    if (fl.pagos.length) {
+      subtitulo("Pagos grandes que vienen y cuánto apartar");
+      tabla([{ t: "Pago", x: M, w: 160 }, { t: "Cuándo", x: M + 170 }, { t: "Monto", x: M + 400, a: "right" }, { t: "Aparte al mes", x: W - M, a: "right", b: true }],
+        fl.pagos.map(function (p) {
+          return { c: [p.nombre, p.mes.nombre + (p.mes.i === 0 ? " (este mes)" : " (en " + (p.mes.i === 1 ? "1 mes" : p.mes.i + " meses") + ")"), money(p.monto), p.mes.i === 0 ? "Este mes" : money(p.aparte)] };
+        }));
+      parrafo("Aparte al mes = el monto del pago entre los meses que faltan para pagarlo. En promedio, sus pagos grandes equivalen a " + money(fl.totPagos / 12) + " al mes.", 10.5, SOFT);
     }
 
     /* Presupuesto de cada mes */
